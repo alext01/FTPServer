@@ -1,0 +1,20 @@
+###############################################################################
+# Students: Evan Myers, Justin Slind, Alex Tai, James Yoo
+# Course: CMPT-361
+# Assignment #3 - ftp server
+# File: Makefile
+# Date: November 2013
+###############################################################################
+CC=gcc
+CFLAGS=-Wall -g -pedantic -std=c99 -D_POSIX_C_SOURCE=200112L -D_BSD_SOURCE
+LDFLAGS=
+
+ftpserv: fakemain.o net.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+fakemain.o: fakemain.c net.h
+net.o: net.c net.h
+
+.PHONY: clean
+clean:
+	rm ftpserv *.o
