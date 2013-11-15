@@ -5,12 +5,22 @@
  * File: net.c
  * Date: November 2013
  *
- * Description: 
+ * Description:
+ *   The functions found in this file create, connect, or accept sockets or
+ *   socket connections. Functions that send or recieve data from a socket are
+ *   also found in this file. The PASV and PORT commands, which create and/or
+ *   connect a socket to establish a data connection are found in this file.
+ *
+ * Acknowledgements:
+ *   ONE - I have discovered that the printf/scanf family has a conversion
+ *         specifier for type uinN_t: http://stackoverflow.com/a/6993177
+ *         I have used the ideas in this example in my code. Search for "ONE"
+ *         in this file for the code blocks that use the macro.
  *****************************************************************************/
 #include <arpa/inet.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <netdb.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -18,16 +28,76 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include "net.h"
-
-#define BACKLOG 10      //Maximum number of clients queued for accept(2).
-#define DEF_PORT "2222" //The default port for the control connection.
-#define MAXSOCK 100     //Maximum number of sockets for the control connection.
-#define BITS_IN_BYTE 8  //The number of bits in a byte.
-#define STD_TERM_SZ 80  //The standard number of characters in a terminal line.
+#include "response.h"
+///////////////////////////////////////////////////////////////////////////////
+/* These are functions Evan will be creating in the near futer. One should not
+ * expect these functions to be fully tested or functional before the end of
+ * the weekend.
+ *
+ * TODO list:
+ *   1) Create a function to read a command from the control connection.
+ *
+ *   2) Create a function, or modify control_accept(), to accept a data
+ *      connection on the socket created by cmd_pasv().
+ *
+ *   3) Create a function that will monitor the control connection for data
+ *      to read. If the PASV command has been called, and is not yet connected
+ *      to the client, a read signal (FD_ISSET) will call the function (2) in
+ *      this TODO list.
+ *          If the data connection has already been established, then this 
+ *      function will monitor the socket for read so as to preform a STORE
+ *      command for example. This will require an (integer?) value to be passed
+ *      to the function from main() that tells the function whether it should
+ *      be expected to recieve data from the data connection socket. */
+///////////////////////////////////////////////////////////////////////////////
 
 
 /******************************************************************************
- * get_control_sock
+ * Socket connection/creation constants.
+ *****************************************************************************/
+#define BACKLOG 10      //Maximum number of clients queued for accept(2).
+#define DEF_PORT "2222" //The default port for the control connection.
+
+
+/******************************************************************************
+ * PORT command error checking constants.
+ *****************************************************************************/
+/* The maximum string length of a PORT command (including the arguments).
+ * (PORT + space) + (6 three digit fields) + (5 commas) + (newline + null) */
+#define MAX_PORT_STR_LEN (5 + (6*3) + 5 + 2)
+
+/* The minimum string length of a PORT command (includeing the arguments).
+ * (PORT + space) + (6 one digit fields) + (5 commas) + (newline + null) */
+#define MIN_PORT_STR_LEN (5 + (6*1) + 5 + 2)
+
+//The number of byte values in the PORT command argument. PORT h1,h2,h3,h4,h5,h6
+#define PORT_BYTE_ARGS 6
+
+
+/******************************************************************************
+ * Various maximum value constants.
+ *****************************************************************************/
+#define MAX_8_BIT  255  //The maximum 8-bit value
+
+
+/******************************************************************************
+ * Local function prototypes.
+ *****************************************************************************/
+//used by cmd_pasv()
+static int get_pasv_sock (void);
+
+//used by cmd_port()
+static int get_port_address (int c_sfd,
+			     char (*hostname)[INET_ADDRSTRLEN], 
+			     char (*service)[MAX_PORT_STR], 
+			     char *cmd_str);
+
+//used by cmd_port()
+static int port_connect (char *hostname, char *service);
+
+
+/******************************************************************************
+ * get_control_sock - see net.h
  *****************************************************************************/
 int get_control_sock (int *sock, int *nsock)
 {
@@ -51,7 +121,7 @@ int get_control_sock (int *sock, int *nsock)
   /* Iterate through the linked list returned from getaddrinfo(). Attempt to
    * create a listening socket for each iteration. */
   *nsock = 0;
-  for (iter = result; iter != NULL && *nsock < MAXSOCK; iter = iter->ai_next) {
+  for (iter = result; iter != NULL && *nsock < MAX_SOCK; iter = iter->ai_next) {
     //Create a new unnamed (unbound) socket.
     if ((sfd = socket (iter->ai_family, 
 		       iter->ai_socktype,
@@ -98,7 +168,6 @@ int get_control_sock (int *sock, int *nsock)
   }
 
   freeaddrinfo (result);  //Free the getaddrinfo() result
-
   //Return error if no listening sockets were created.
   if (*nsock == 0) {
     fprintf (stderr, "%s: no control sockets were created\n", __FUNCTION__);
@@ -108,59 +177,29 @@ int get_control_sock (int *sock, int *nsock)
   return 0;
 }
 
+
 /******************************************************************************
- * Accept a control connection. This function is TEMPORARY, it is only designed
- * to accept() ONE connection per call to this function. In the current form 
- * none of the socket file descriptors are closed. If we decide to keep this
- * function, all comments and code in this function should be carefuly checked
- * and re-written if necessary.
- *
- * Not knowing how we will accept the connections fully I have created this
- * temporary design to be used as follows:
- * in function main:
- *    while (TRUE) {
- *       get_con_sock();
- *       sfd = con_accept();
- *       do something (create a pthread...) with the sfd here;
- *    }
- *
- * Arguments:
- *   sock  - An array of listening sockets ready to accept connections.
- *   nsock - The number of listening sockets that is found in the array passed
- *           in the first argument.
- *
- * Return values:
- *   >0   The socket file descriptor that accepted a connection.
- *   -1   error
- *
- * Original author (this function is temporary): Evan Myers
+ * control_accept - see net.h
  *****************************************************************************/
 int control_accept (int *sock, int nsock)
 {
-  int sfd;              //the current socket file descriptor
-  int max_sfd;          //select() variable
-  fd_set master, rfds;  //rfds set to master set
+  int sfd;           //the current socket file descriptor
+  int max_sfd;       //select() argument
+  fd_set rfds;
   int i;
 
-  /* Set the master fd_set for all the sockets to read (accept) from. The read
-   * socket file descriptors that select monitors will be set to the master
-   * list of socket file descriptors before each call of select, removing this
-   * block from the loop. 
-   *
-   * NOT A FINAL COMMENT: this block may be removed if we decide to only
-   *                      accept one connection per function call. */
-  FD_ZERO (&master);
-  max_sfd = 0;
-  for (i = 0; i < nsock; i++) {
-    FD_SET (sock[i], &master);
-    /* Keep track of the largest sfd, to be used in the first argument field 
-     * of select(). */
-    if (sock[i] > max_sfd)
-      max_sfd = sock[i];
-  }
+  while (1) {
+    //Set the read fd_set bits.
+    FD_ZERO (&rfds);
+    max_sfd = 0;
+    for (i = 0; i < nsock; i++) {
+      FD_SET (sock[i], &rfds);
+      /* Keep track of the largest sfd, to be used in the first argument field 
+       * of select(). */
+      if (sock[i] > max_sfd)
+	max_sfd = sock[i];
+    }
 
-  while (1) {  //This loop can be converted into a "goto" statement. NOT FINAL.
-    rfds = master;
     if (select (max_sfd + 1, &rfds, NULL, NULL, NULL) == -1) {
       //Restart the loop if the select error is not fatal.
       if (errno == EINTR)
@@ -190,26 +229,42 @@ int control_accept (int *sock, int nsock)
   return sfd;  //Return the accepted socket file descriptor.
 }
 
+
 /******************************************************************************
- * cmd_pasv
+ * cmd_pasv - see net.h
  *****************************************************************************/
-int cmd_pasv (int c_sfd)
+int cmd_pasv (int c_sfd, char *cmd_str)
 {
   int d_sfd; //data connection socket file descriptor
+  char expected_str[] = "PASV\n";
+
+  if (strcmp (cmd_str, expected_str) != 0) {
+    send_mesg_500 (c_sfd);
+    return -1;
+  }
 
   /* Create a data connection socket that is ready to accept a connection from
    * the client. */
   if ((d_sfd = get_pasv_sock()) == -1)
     return -1;
 
-  if (send_msg_227 (c_sfd, d_sfd) == -1)
-    return -1;
-
+  if (send_mesg_227 (c_sfd, d_sfd) == -1)
+     return -1;
+ 
   return d_sfd;
 }
 
+
 /******************************************************************************
- * get_pasv_sock
+ * Create an TCP socket for the PASV server command. Only the address returned
+ * from gethostname() is used to make the socket, so this function should not
+ * be used for creating the sockets of the control connection.
+ *
+ * Return values:
+ *    > 0   The file descriptor for the newly created data connection socket.
+ *     -1   Error while creating the socket.
+ *
+ * Original author: Evan Myers
  *****************************************************************************/
 int get_pasv_sock (void)
 {
@@ -270,85 +325,33 @@ int get_pasv_sock (void)
   return sfd;             //Return the listening data connection socket
 }
 
-/******************************************************************************
- * send_msg_227
- *****************************************************************************/
-int send_msg_227 (int c_sfd, int d_sfd)
-{
-  struct sockaddr_in my_addr;
-  socklen_t addr_len;
-  uint8_t mesg[STD_TERM_SZ];
-  int mesg_len;
-
-  /* Used to collect the the decimal value of each byte, which will be sent to
-   * the client as specified rfc 959. */
-  int h1, h2, h3, h4;         //The bytes of the IPv4 address
-  int p1, p2;                 //The bytes of the port
-
-  /* Initialize addr_len to the size of an IPv4 address. If getsockname()
-   * modifies this value, an IPv4 address was not used to create the PASV
-   * socket. */
-  addr_len = sizeof(my_addr);
-
-  //Collect the address info
-  if (getsockname (d_sfd, (struct sockaddr *)&my_addr, &addr_len) == -1)
-    return -1;
-
-  //Ensure the passive socket has a 4-byte address.
-  if (addr_len > sizeof(my_addr)) {
-    //The socket is not IPv4, the socket is invalid for the command PASV.
-    return -1;
-  }
-
-  /* Ensure the IPv4 address bytes will be sent to the client in the same order
-   * on all systems by converting to network-byte-order before calculating
-   * the value of each byte field. */
-  my_addr.sin_addr.s_addr = htonl (my_addr.sin_addr.s_addr);
-  /* Store each byte of the IPv4 address as a decimal value in preperation for
-   * sending the passive mode message. */
-  h1 = (my_addr.sin_addr.s_addr & 0xFF000000) >> (3 * BITS_IN_BYTE);
-  h2 = (my_addr.sin_addr.s_addr & 0x00FF0000) >> (2 * BITS_IN_BYTE);
-  h3 = (my_addr.sin_addr.s_addr & 0x0000FF00) >> (BITS_IN_BYTE);
-  h4 = (my_addr.sin_addr.s_addr & 0x000000FF);
-
-  /* Ensure the port bytes will be sent to the client in the same order
-   * on all systems by converting to network-byte-order before calculating
-   * the value of each byte field. */
-  my_addr.sin_port = htons (my_addr.sin_port);
-  /* Store each byte of the port as a decimal value in preperation for
-   * sending the passive mode message. */
-  p1 = (my_addr.sin_port & 0xFF00) >> BITS_IN_BYTE;
-  p2 = (my_addr.sin_port & 0x00FF);
-
-  //Create the feedback message, code 227.
-  sprintf ((char *)mesg, "227 Entering Passive Mode (%d,%d,%d,%d,%d,%d)\n", 
-	   h1, h2, h3, h4, p1, p2);
-
-  mesg_len = strlen ((char *)mesg) + 1;
-  mesg[mesg_len] = '\0';
-
-  //Send the feedback message to the control socket.
-  if (send_all (c_sfd, mesg, mesg_len) == -1) {
-    return -1;
-  }
-
-  return 0;
-}
 
 /******************************************************************************
- * cmd_port
+ * cmd_port - see net.h
  *****************************************************************************/
-int cmd_port (int c_sfd, char *addr)
+int cmd_port (int c_sfd, char *cmd_str)
 {
-  int d_sfd;   //The data connection socket file descriptor
-
-  //The address to connect to for the data connecti
+  int d_sfd;        //The data connection socket file descriptor.
+  int cmd_str_len;  //The length of the command string.
+  //The data connection address to connect to.
   char hostname[INET_ADDRSTRLEN];  //Maximum size of an IPv4 dot notation addr.
-  char service[MAX_PORT_STR];      
+  char service[MAX_PORT_STR];
+
+  /* Filter invalid PORT arguments by comparing the length of the argument. Too
+   * many or too little number of characters in the string means that the
+   * argument is invalid. */
+  if ((cmd_str_len = strlen (cmd_str)) < (MIN_PORT_STR_LEN - 1)) {
+    fprintf (stderr, "%s: PORT argument too short\n", __FUNCTION__);
+    send_mesg_501 (c_sfd);
+    return -1;
+  } else if (cmd_str_len > (MAX_PORT_STR_LEN - 1)) {
+    fprintf (stderr, "%s: PORT argument too long\n", __FUNCTION__);
+    send_mesg_501 (c_sfd);
+    return -1;
+  }    
 
   //Convert the address h1,h2,h3,h4,p1,p2 into a hostname and service.
-  if (get_port_address (&hostname, &service, addr) == -1) {
-    //Error message
+  if (get_port_address (c_sfd, &hostname, &service, cmd_str) == -1) {
     return -1;
   }
 
@@ -361,58 +364,162 @@ int cmd_port (int c_sfd, char *addr)
   return d_sfd;
 }
 
+
 /******************************************************************************
- * get_port_address
+ * Convert the argument recieved with the PORT command to a hostname and
+ * service string that can be used as arguments to getaddrinfo(). 
+ *
+ * The port command is entered as: PORT h1,h2,h3,h4,p1,p2 where h1-h4 are the
+ * decimal values of each byte in the hostname and p1-p2 are the high and low
+ * order bytes of the 16bit integer port.
+ *
+ * The argument 'cmd_str' is the command recieved by the server on the control
+ * connection. The command string must be passed to this function in its
+ * entirety.
+ *
+ * Arguments:
+ *      c_sfd - The socket file descriptor for the control connection.
+ *   hostname - The hostname string, passed as a pointer to this function, will
+ *              be set to the IPv4 dot notation hostname on function return.
+ *   service  - The service string, passed as a pointer to this function, will
+ *              be set to the port integer value expressed as a string on
+ *              function return.
+ *    cmd_str - The string of the port command. "PORT h1,h2,h3,h4,p1,p2\n"
+ *
+ * Return values:
+ *   0    The hostname and service strings have been successfuly set.
+ *  -1    Error, hostname and service strings are not set.
+ *
+ * Original author: Evan Myers
  *****************************************************************************/
-int get_port_address (char (*hostname)[INET_ADDRSTRLEN], 
+int get_port_address (int c_sfd,
+		      char (*hostname)[INET_ADDRSTRLEN], 
 		      char (*service)[MAX_PORT_STR], 
 		      char *cmd_str)
 {
-  /* Used to collect each byte of the hostname that was passed to the function
-   * in the string argument 'addr'. */
-  int h1, h2, h3, h4;
+  /* Used to collect each byte of the hostname and port that was passed to the
+   * function in the string argument 'cmd_str'.
+   *
+   * The bytes that will be collected from the command string and stored in the
+   * elements of this array have been stored in a value that is larger than 8
+   * bits. This has been done so that any byte value that is too large (an
+   * invalid IPv4 address or port) can be found. */
+  uint16_t h[PORT_BYTE_ARGS];    //h1,h2,h3,h4,p1,p2 see the function header.
+  int h_index;
 
-  /* The port variables have been set to uint16_t so that they can be converted
-   * to network-byte-order using htons(). Each port byte is collected and
-   * converted to network-byte-order, then the bits are shifted to create one
-   * integer. After the shift is complete the value is converted to 
-   * host-byte-order before being converted to a string. */
-  uint16_t p1, p2;
+  int cmd_str_len;  //Length of the command string (function argument 3).
+  uint16_t port;    //Stores the combined p1 and p2 value.
+  int i;            //Loop counter.
+
+  int char_counter; /* Used to ensure only one comma character is present 
+		     * between each byte field in the command string. */
   
-  //Collect each byte from the address string passed to the function.
-  while (1) {
-    if (sscanf (cmd_str, "%d%d%d%d%hu%hu", &h1, &h2, &h3, &h4,
-		(unsigned short *)&p1, (unsigned short *)&p2) == -1) {
-      //Check for errors, errno is non-fatal so restart the loop in that case.
-      if (errno == EINTR)
+  //Initialize counters and compare values.
+  cmd_str_len = strlen (cmd_str);
+  char_counter = 0;
+  h_index = 0;
+  i = 0;
+
+  /* Process all characters in the command string. This includes the command
+   * portion "PORT " and the argument portion "h1,h2,h3,h4,p1,p2\n". */
+  while (i < cmd_str_len) {
+    /* Enter this block if the current character is not a digit. All characters
+     * that are not digits (0-9) will be processed in this block, and the loop
+     * will be restarted with the continue statement to process the next
+     * character.  */
+    if ((cmd_str[i] < 48) || (cmd_str[i] > 57)) {
+      /* Only one comma may seperate a byte field in the argument. Keep track
+       * of the number of number of characters between byte fields when in the
+       * argument portion of the command string. */
+      if (h_index > 0) {
+	/* Only a comma may seperate a byte field. A newline is expected as the
+	 * last character in the string, followed by a NULL character. */ 
+	if ((cmd_str[i] != ',')&&(cmd_str[i] != '\n')&&(cmd_str[i] != '\0')) {
+	  printf ("char = %c\ni = %d\n", cmd_str[i], i); 
+	  fprintf (stderr, "%s: illegal character in argument\n", __FUNCTION__);
+	  send_mesg_501 (c_sfd);
+	  return -1;
+	}
+	char_counter++;
+      }
+      i++;
+      continue;
+    }
+    //All characters that move past this point are digits.
+
+    /* When an integer is found, store the integer. See acknowledgement ONE in
+     * the file header for the meaning of "SCNu16". */
+    if (sscanf (cmd_str + i, "%"SCNu16, &h[h_index]) == -1) {
+      //Check for errors, EINTR is non-fatal so try sscanf again in that case.
+      if (errno == EINTR) {
+	i--; //So that the same character will be passed to sscanf()
 	continue;
+      }
       fprintf (stderr, "%s: sscanf: %s\n", __FUNCTION__, strerror (errno));
       return -1;
     }
-    break; //If sscanf() returned no errors break from the loop.
+
+    //Determine if the integer is too large to be stored in 1-byte.
+    if (h[h_index] > MAX_8_BIT) {
+      fprintf (stderr, "%s: invalid PORT argument, %"PRIu16" is larger than"
+	       " a byte\n", __FUNCTION__, h[h_index]);
+      send_mesg_501 (c_sfd);
+      return -1;
+    }
+
+    //Determine the length of characters the integer is composed of.
+    if (h[h_index] > 99) {
+      i += 3;
+    } else if (h[h_index] > 9) {
+      i += 2;
+    } else {
+      i++;
+    }
+
+    //Store the next integer on the next pass.
+    h_index++;
   }
 
-  //Store the hostname in IPv4 dot notation.
-  sprintf (*hostname, "%d.%d.%d.%d", h1, h2, h3, h4);
+  //Ensure that the correct number of integers were present in the string.
+  if (h_index < (PORT_BYTE_ARGS - 1)) {
+    fprintf (stderr, "%s: improper PORT argument\n", __FUNCTION__);
+    send_mesg_501 (c_sfd);
+    return -1;
+  }
 
-  /* Convert the port to network-byte-order so that the bit shifting will have
-   * the correct effect on all systems. */
-  p1 = htons (p1);
-  p2 = htons (p2);
+  //Store the hostname in IPv4 dot notation. See acknowledgement ONE.
+  sprintf (*hostname, "%"PRIu16".%"PRIu16".%"PRIu16".%"PRIu16,
+	   h[0], h[1], h[2], h[3]);
+
+  /* Multiply the value of the high order port byte by 256, to shift this byte
+   * into the correct position. This essentially shifts the value by 8 bits
+   * for both big and little endian systems. */
+  h[4] = (h[4] * 256);
   //Combine the two port bytes to create one integer.
-  p2 = p1 >> BITS_IN_BYTE;
-  p2 = p1 | p2;
-  // Convert the integer to host-byte-order before creating the string.
-  p2 = ntohs (p2);
-  //Store the integer as a string.
-  sprintf (*service, "%hu", (unsigned short)p2);
+  port = (h[4] | h[5]);
+  //Store the integer as a string. See acknowledgement ONE in the file header.
+  sprintf (*service, "%"PRIu16, port);
 
   //The hostname and service have been set, return from the function.
   return 0;
 }
   
+
 /******************************************************************************
- * port_connect
+ * Connect to the address and port specified in the arguments recieved with the
+ * PORT command.
+ *
+ * Arguments:
+ *   hostname - The IPv4 address to connect to, represented in a dot notation
+ *              string. (eg. "xxx.2.0.13")
+ *    service - The service (port) to connect to, represented as a string.
+ *              (eg. "56035")
+ *
+ * Return values:
+ *   >0    The socket file descriptor of the newly created data connection.
+ *   -1    Error, the connection could not be made.
+ *
+ * Original author: Evan Myers
  *****************************************************************************/
 int port_connect (char *hostname, char *service)
 {
@@ -427,7 +534,7 @@ int port_connect (char *hostname, char *service)
 
   //Create the address information using the hostname and service.
   if ((gai = getaddrinfo (hostname, service, &hints, &result)) == -1) {
-    fprintf (stderr, "%s: getaddrinfo: %s\n", __FUNCTION__, gai_strerror (gai));
+    fprintf (stderr, "%s: getaddrinfo: %s\n", __FUNCTION__, gai_strerror(gai));
     return -1;
   }
 
@@ -449,8 +556,9 @@ int port_connect (char *hostname, char *service)
   return sfd;             //Return the data connection socket file descriptor.
 }
 
+
 /******************************************************************************
- * send_all
+ * send_all - see net.h
  *****************************************************************************/
 int send_all (int sfd, uint8_t *mesg, int mesg_len)
 {
@@ -472,5 +580,3 @@ int send_all (int sfd, uint8_t *mesg, int mesg_len)
 
   return 0;
 }
-
-

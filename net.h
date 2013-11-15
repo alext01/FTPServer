@@ -1,24 +1,35 @@
 /******************************************************************************
- * Student: Evan Myers
+ * Student: Evan Myers, Justin Slind, Alex Tai, James Yoo
  * Course: CMPT-361
  * Assignment: Assignment #3 - ftp server
  * File: net.h
  * Date: November 2013
  *
- * Description: 
+ * Description:
+ *   The functions found in this file create, connect, or accept sockets or
+ *   socket connections. Functions that send or recieve data from a socket are
+ *   also found in this file. The PASV and PORT commands, which create and/or
+ *   connect a socket to establish a data connection are found in this file.
  ******************************************************************************/
-#ifndef NET_H
-#define NET_H
+#ifndef __NET_H__
+#define __NET_H__
 
-#include <stdint.h> //Required for 'uint8_t' in function prototype: send_all()
-#include <arpa/inet.h>  //INETADDR_STRLEN
+#include <stdint.h>    //Required for 'uint8_t' in function prototype
+#include <arpa/inet.h> //required for the INETADDR_STRLEN in function prototype
 
 //The maximum number of characters a 16-bit integer can be converted to.
 #define MAX_PORT_STR 6
 
+/* The maximum number of sockets that will be listened to when establishing
+ * control connections with any client. */
+#define MAX_SOCK 100
+
+#define BITS_IN_BYTE 8  //The number of bits in a byte.
+
 /******************************************************************************
  * Create listening sockets on all available interfaces. The created sockets
- * will be used to establish a control connection with the client.
+ * will be used to establish a control connection with the client. The sockets
+ * created are not closed on function return.
  *
  * Arguments: 
  *   sock  - Each listening socket will be set to an element of this array on 
@@ -33,29 +44,13 @@
  *
  * Acknowledgements:
  *    -This function is similar to the function "serv_fb_setup" written by
- *     Evan Myers in assignment #2 file "net.c".
+ *     Evan Myers in his assignment #2 file "net.c".
  *****************************************************************************/
 int get_control_sock (int *sock, int *nsock);
 
+
 /******************************************************************************
- * Accept a control connection. This function is TEMPORARY, it is only designed
- * to accept() ONE connection per call to this function. In the current form 
- * none of the socket file descriptors are closed. If we decide to keep this
- * function, all comments and code in this function should be carefuly checked
- * and re-written if necessary.
- *
- * We may wish to have the function add the accepted socket file descriptor to
- * a linked list.
- *
- * Not knowing how we will accept the connections fully I have created this
- * temporary design to be used as follows:
- * 
- * In function main():
- *    get_con_sock();
- *    while (TRUE) {
- *       sfd = con_accept();
- *       do something (create a pthread...) with the sfd here;
- *    }
+ * Establish a control connection from the client on any available interface.
  *
  * Arguments:
  *   sock  - An array of listening sockets ready to accept connections.
@@ -63,12 +58,13 @@ int get_control_sock (int *sock, int *nsock);
  *           in the first argument.
  *
  * Return values:
- *   >0   The socket file descriptor that accepted a connection.
- *   -1   error
+ *   >0   The socket file descriptor of the newly created control connection.
+ *   -1   Error, the connection could not be established with the client.
  *
- * Original author (this function is temporary for now): Evan Myers
+ * Original author: Evan Myers
  *****************************************************************************/
 int control_accept (int *sock, int nsock);
+
 
 /******************************************************************************
  * Create a TCP data connection socket for the PASV server command. Then send
@@ -78,6 +74,7 @@ int control_accept (int *sock, int nsock);
  *
  * Arguments:
  *   c_sfd - The control connection socket file descriptor.
+ *   cmd_str  - The string of the pasv command. "PASV\n"
  *
  * Return values:
  *  >0    The socket file descriptor of the data connection socket.
@@ -85,47 +82,16 @@ int control_accept (int *sock, int nsock);
  *
  * Original author: Evan Myers
  *****************************************************************************/
-int cmd_pasv (int c_sfd);
+int cmd_pasv (int c_sfd, char *cmd_str);
+
 
 /******************************************************************************
- * Create an TCP socket for the PASV server command. Only the address returned
- * from gethostname() is used to make the socket, so this function should not
- * be used for creating the sockets of the control connection.
- *
- * Return values:
- *    > 0   The file descriptor for the newly created data connection socket.
- *     -1   Error while creating the socket.
- *
- * Original author: Evan Myers
- *****************************************************************************/
-int get_pasv_sock (void);
-
-/******************************************************************************
- * Create the PASV command feedback message, then send the feedback to the
- * client on the control connection.
- *
- * Arguments:
- *   c_sfd - The file descriptor of the control connection socket. The feedback
- *           message will be sent to this socket.
- *   d_sfd - The file descriptor of the data connection socket. The address
- *           information sent to the control connection socket will be created
- *           with this socket.
- *
- * Return values:
- *    0   The message was successfuly sent to the socket.
- *   -1   The message was not sent to the socket.
- *
- * Original author: Evan Myers
- *****************************************************************************/
-int send_msg_227 (int c_sfd, int d_sfd);
-
-/******************************************************************************
- * Connect a TCP socket to the address argument of the HOST command. This
+ * Connect a TCP socket to the address argument of the PORT command. This
  * will create a data connection to the client if successful.
  *
  * Arguments:
  *   c_sfd    - The control connection socket file descriptor.
- *   cmd_str  - The string of the port command. PORT h1,h2,h3,h4,p1,p2
+ *   cmd_str  - The string of the port command. "PORT h1,h2,h3,h4,p1,p2\n"
  *
  * Return values:
  *   >0   The socket file descriptor of the data connection socket.
@@ -135,40 +101,6 @@ int send_msg_227 (int c_sfd, int d_sfd);
  *****************************************************************************/
 int cmd_port (int c_sfd, char *cmd_str);
 
-/******************************************************************************
- * Convert the argument recieved with the PORT command to a hostname and
- * service string that can be used as arguments to getaddrinfo(). 
- *
- * The port command is entered as: PORT h1,h2,h3,h4,p1,p2 where h1-h4 are the
- * decimal values of each byte in the hostname and p1-p2 are the high and low
- * order bytes of the 16bit integer port.
- *
- * The argument 'cmd_str' is the command string, it may include the command PORT
- * or just the values h1 through p2 that are seperated by comma's (','). The 
- * syntax of the PORT command arguments must be checked before passing the
- * command string to this function.
- *
- * Arguments:
- *   hostname - The hostname string, passed as a pointer to this function, will
- *              be set to the IPv4 dot notation hostname on function return.
- *   service  - The service string, passed as a pointer to this function, will
- *              be set to the port integer value expressed as a string on
- *              function return.
- *
- * Return values:
- *   0    The hostname and service strings have been successfuly set.
- *  -1    Error, hostname and service strings are not set.
- *
- * Original author: Evan Myers
- *****************************************************************************/
-int get_port_address (char (*hostname)[INET_ADDRSTRLEN],
-		      char (*service)[MAX_PORT_STR],
-		      char *cmd_str);
-
-/******************************************************************************
- * port_connect
- *****************************************************************************/
-int port_connect (char *hostname, char *service);
 
 /******************************************************************************
  * Send the entire message found in the second argument to the socket passed
@@ -185,4 +117,4 @@ int port_connect (char *hostname, char *service);
  *****************************************************************************/
 int send_all (int sfd, uint8_t *mesg, int mesg_len);
 
-#endif /* NET_H */
+#endif //__NET_H__
