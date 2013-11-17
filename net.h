@@ -14,8 +14,10 @@
 #ifndef __NET_H__
 #define __NET_H__
 
+
 #include <stdint.h>    //Required for 'uint8_t' in function prototype
 #include <arpa/inet.h> //required for the INETADDR_STRLEN in function prototype
+
 
 //The maximum number of characters a 16-bit integer can be converted to.
 #define MAX_PORT_STR 6
@@ -51,6 +53,8 @@ int get_control_sock (int *sock, int *nsock);
 
 /******************************************************************************
  * Establish a control connection from the client on any available interface.
+ * Read standard input from the server console for commands such as "shutdown"
+ * or "help".
  *
  * Arguments:
  *   sock  - An array of listening sockets ready to accept connections.
@@ -67,10 +71,14 @@ int control_accept (int *sock, int nsock);
 
 
 /******************************************************************************
- * Create a TCP data connection socket for the PASV server command. Then send
- * the address information of the newly created socket to the client over the
- * control connection. The socket that is created will be ready to accept() a
- * connection from the client to establish a data connection.
+ * Create a TCP data connection socket for the PASV server command. 
+ *
+ * The interface that this socket is created on will be the value which is set
+ * for the INTERFACE_CONFIG setting in the configuration file.
+ *
+ * Send the address information of the newly created socket to the client over
+ * the control connection. The socket that is created will be ready to accept()
+ * a connection from the client to establish a data connection.
  *
  * Arguments:
  *   c_sfd - The control connection socket file descriptor.
@@ -83,6 +91,37 @@ int control_accept (int *sock, int nsock);
  * Original author: Evan Myers
  *****************************************************************************/
 int cmd_pasv (int c_sfd, char *cmd_str);
+
+
+/******************************************************************************
+ * Find the address of an interface.
+ *
+ * Set the string pointer passed as argument two of this function to the dot
+ * notation (eg. 127.0.1.1) IPv4 address of the interface passed as the first
+ * argument to this function.
+ *
+ * Arguments:
+ *   interface - Retrieve the address of this interface.
+ *   address   - A string pointer to be set to the retrieved interface address
+ *               on function return.
+ *
+ * Return values:
+ *   0    Success, the address was found and the value set in the second
+ *        argument.
+ *  -1    Error, the address has not been set in the second argument. 
+ *
+ * Original author: Evan Myers
+ *
+ * Acknowledgements:
+ *   This function was created as the result of advice recieved from
+ *   Dr. Nicholas Boers to retrieve the external IP address of a computer. In
+ *   this advice, the link which follows was suggested. When creating this
+ *   function, I was following the example code found in this link:
+ *   
+ *   http://stackoverflow.com/a/265978
+ *****************************************************************************/
+int get_interface_address (const char *interface,
+			   char (*address)[INET_ADDRSTRLEN]);
 
 
 /******************************************************************************

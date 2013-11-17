@@ -19,30 +19,40 @@
  *****************************************************************************/
 #include <arpa/inet.h>
 #include <errno.h>
+#include <ifaddrs.h>
 #include <inttypes.h>
 #include <netdb.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
+#include "config.h"
 #include "net.h"
 #include "response.h"
+
+#define SHUTDOWN -999
+
 ///////////////////////////////////////////////////////////////////////////////
 /* These are functions Evan will be creating in the near futer. One should not
  * expect these functions to be fully tested or functional before the end of
  * the weekend.
  *
  * TODO list:
- *   1) Create a function to read a command from the control connection.
  *
- *   2) Create a function, or modify control_accept(), to accept a data
+ *   2) Create a function to compare the results of getifaddr() to the return
+ *      of the config file for the PASV command.
+ *
+ *   2) Create a function to read a command from the control connection.
+ *
+ *   3) Create a function, or modify control_accept(), to accept a data
  *      connection on the socket created by cmd_pasv().
  *
- *   3) Create a function that will monitor the control connection for data
+ *   4) Create a function that will monitor the control connection for data
  *      to read. If the PASV command has been called, and is not yet connected
- *      to the client, a read signal (FD_ISSET) will call the function (2) in
+ *      to the client, a read signal (FD_ISSET) will call the function (3) in
  *      this TODO list.
  *          If the data connection has already been established, then this 
  *      function will monitor the socket for read so as to preform a STORE
@@ -84,7 +94,7 @@
  * Local function prototypes.
  *****************************************************************************/
 //used by cmd_pasv()
-static int get_pasv_sock (void);
+static int get_pasv_sock (const char *hostname);
 
 //used by cmd_port()
 static int get_port_address (int c_sfd,
@@ -187,10 +197,18 @@ int control_accept (int *sock, int nsock)
   int max_sfd;       //select() argument
   fd_set rfds;
   int i;
+  int stdin_fd;      //store the fileno of stdin.
+
+  if ((stdin_fd = fileno (stdin)) == -1) {
+    fprintf (stderr, "%s: fileno: %s\n", __FUNCTION__, strerror (errno));
+    return -1;
+  }
 
   while (1) {
     //Set the read fd_set bits.
     FD_ZERO (&rfds);
+    //Include stdin for the read set. Server can input commands with this.
+    FD_SET (stdin_fd, &rfds);
     max_sfd = 0;
     for (i = 0; i < nsock; i++) {
       FD_SET (sock[i], &rfds);
@@ -206,6 +224,10 @@ int control_accept (int *sock, int nsock)
 	continue;
       fprintf (stderr, "%s: select: %s\n", __FUNCTION__, strerror (errno));
       return -1;
+    }
+
+    if (FD_ISSET (stdin_fd, &rfds)) {
+      return SHUTDOWN;
     }
     
     //Attempt to accept a connection with the named socket.
@@ -236,18 +258,46 @@ int control_accept (int *sock, int nsock)
 int cmd_pasv (int c_sfd, char *cmd_str)
 {
   int d_sfd; //data connection socket file descriptor
-  char expected_str[] = "PASV\n";
+  char *expected_str = "PASV\n";  //the only legal cmd_str for this function.
 
+  //The setting to be searched for in the config file.
+  char *interface_setting = "INTERFACE_CONFIG";
+  //The value for the setting that was searched for in the config file.
+  char *interface_result;
+
+  //The IPv4 address of the configuration file interface.
+  char interface_addr[INET_ADDRSTRLEN];
+
+  /* Ensure the right command was passed to this function, and that there are no
+   * arguments. */
   if (strcmp (cmd_str, expected_str) != 0) {
     send_mesg_500 (c_sfd);
     return -1;
   }
 
+  //Read the config file to find which interface to use to make the socket.
+  if ((interface_result = get_config_value (interface_setting)) == NULL) {
+    //internal error message code (insert on this line).
+    return -1;
+  }
+
+  /* Get the IPv4 address for the interface that was set in the configuration
+   * file. Free the interface retrieved from the config file, it is no longer
+   * required. */
+  if (get_interface_address (interface_result, &interface_addr) == -1) {
+    //internal error message code (insert on this line).
+    free (interface_result);
+    return -1;
+  }
+  free (interface_result);
+
   /* Create a data connection socket that is ready to accept a connection from
    * the client. */
-  if ((d_sfd = get_pasv_sock()) == -1)
+  if ((d_sfd = get_pasv_sock (interface_addr)) == -1) {
     return -1;
+  }
 
+  //Send the data connection address information to the control socket.
   if (send_mesg_227 (c_sfd, d_sfd) == -1)
      return -1;
  
@@ -256,9 +306,58 @@ int cmd_pasv (int c_sfd, char *cmd_str)
 
 
 /******************************************************************************
- * Create an TCP socket for the PASV server command. Only the address returned
- * from gethostname() is used to make the socket, so this function should not
- * be used for creating the sockets of the control connection.
+ * get_interface_address - see net.h
+ *****************************************************************************/
+int get_interface_address (const char *interface,
+			   char (*address)[INET_ADDRSTRLEN])
+{
+  struct ifaddrs *result, *iter;   //getifaddrs()
+  void *tmp_addr_ptr;              //Void source pointer for inet_ntop().
+
+  //Get a linked list of interface addresses.
+  if (getifaddrs (&result) == -1) {
+    fprintf (stderr, "%s: getifaddrs: %s\n", __FUNCTION__, strerror (errno));
+    return -1;
+  }
+
+  //Iterate through the results of getifaddrs().
+  for (iter = result; iter != NULL; iter = iter->ifa_next) {
+    //Only IPv4 addresses have been implemented for our server, ignore IPv6.
+    if (iter->ifa_addr->sa_family != AF_INET)
+      continue;
+
+    //Move to next node if the interface name does not match.
+    if (strcmp (iter->ifa_name, interface) != 0)
+      continue;
+
+    /* At this point we have found the correct interface. Set the address
+     * passed in the second argument to this function to the address of this
+     * interface. */
+    tmp_addr_ptr = &((struct sockaddr_in *)iter->ifa_addr)->sin_addr;
+    inet_ntop(AF_INET, tmp_addr_ptr, *address, INET_ADDRSTRLEN);
+    
+    /* The address has been retrieved, no more iterations are necessary. */
+    break;
+  }
+
+  //Return error when the interface was not found for IPv4.
+  if (iter == NULL) {
+    fprintf (stderr, "%s: '%s' is not a valid IPv4 interface\n",
+	     __FUNCTION__, interface);
+    freeifaddrs (result);
+    return -1;
+  }
+
+  //Clean up and return from the function.
+  freeifaddrs (result);
+  return 0;
+}
+
+
+/******************************************************************************
+ * Create an TCP socket for the PASV server command. This function should not
+ * be used for creating the sockets of the control connection because it will
+ * not make a socket for all available interfaces.
  *
  * Return values:
  *    > 0   The file descriptor for the newly created data connection socket.
@@ -266,25 +365,17 @@ int cmd_pasv (int c_sfd, char *cmd_str)
  *
  * Original author: Evan Myers
  *****************************************************************************/
-int get_pasv_sock (void)
+static int get_pasv_sock (const char *hostname)
 {
   struct addrinfo hints, *result;   //getaddrinfo()
   int gai;         //getaddrinfo error string.
   int sfd;         //the file descriptor of the data connection socket
 
-  //Used to extract the external IP address. +1 for a null terminator.
-  char hostname[_SC_HOST_NAME_MAX + 1];
-  // http://permalink.gmane.org/gmane.comp.lib.gnulib.bugs/18258
-
   //set the gettaddrinfo() hints
   bzero (&hints, sizeof(hints));
   hints.ai_family = AF_INET;        //IPv4, four byte address
   hints.ai_socktype = SOCK_STREAM;  //the data connection is stream
-  hints.ai_flags = AI_PASSIVE;
-
-  /* Get the name of the local host, use this value as the node argument in
-   * getaddrinfo(). */
-  gethostname (hostname, sizeof (hostname));
+  //hints.ai_flags = AI_PASSIVE;
 
   /* Populate the linked list found in result. Use the host name entry on the
    * routing table for the node argument. "0" in the second argument will
@@ -580,3 +671,4 @@ int send_all (int sfd, uint8_t *mesg, int mesg_len)
 
   return 0;
 }
+  

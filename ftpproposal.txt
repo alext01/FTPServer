@@ -20,7 +20,8 @@ Revision 1 of this file.
     -Added some code for mutex locking in main() and pthread().
     -Added a note about where to declare list pointer variables in pthread().
 
-
+Revision 2 of this file.
+    -Added a section at the bottom about the server config file.
 
 
 
@@ -230,7 +231,23 @@ int session (node) {
 
     //Process the data.
 }
+-----------------------------------------------------------------------------------
+END OF FUNCTION SESSION()
+-----------------------------------------------------------------------------------
+config file:
+       The best solution to getting the external IPv4 address for the server host
+involves the use of a config file. Basically, the interface that we wish our server
+to run on will be listed in this file. When the passive command is called, the
+server will read this file and find out which interface is to be used. This interface
+will be compared to some structures and the correct one will be chosen.
+       This file is not limited to interface type. We could include other information
+in this file, such as a default port to use. If we need some variable to be known,
+and the only way to get the information is by using system specific commands, or
+commands that we cannot include in our c code, it may be included in this file.
 
+
+
+------------------------------------------------------------------------------------
 At this point I have expressed most of my ideas for the server I wished to propose.
 The function above was cut short in this file in the case that we do not follow
 this proposal whatsoever I do not wish to waste my time. If we do wish to implement

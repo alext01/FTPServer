@@ -1,30 +1,25 @@
 ###############################################################################
-# Students: Evan Myers, Justin Slind, Alex Tai, James Yoo (alphabetical)
+# Students: Evan Myers, Justin Slind, Alex Tai, James Yoo
 # Course: CMPT-361
 # Assignment #3 - ftp server
 # File: Makefile
 # Date: November 2013
 ###############################################################################
-SHELL=/bin/bash
-
 CC=gcc
 CFLAGS=-g -pedantic -pthread -std=c99 -Wall -D_BSD_SOURCE -D_POSIX_C_SOURCE=200112L
-LDFLAGS=-g -pthread
+LDFLAGS=-pthread
 
 all: main
 
-main: main.o
+#main program
+main: main.o net.o response.o config.o
 
+config.o: config.c config.h
 main.o: main.c linkedlist.h threadparam.h
-
-
-#This portion of the makefile creates nettest: a place to test netcode.
-nettest: fakemain.o net.o response.o
-	$(CC) $(LDFLAGS) -o $@ $^
-fakemain.o: fakemain.c net.h
 net.o: net.c net.h response.h
 response.o: response.c net.h response.h
 
+#Clean up the repository.
 .PHONY: clean
 clean:
-	$(RM) main main.o fakemain.o net.o response.o nettest
+	rm main *.o
