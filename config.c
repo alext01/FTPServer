@@ -163,7 +163,7 @@ char *search_config (const char *target, const char *pathname)
     if (line[0] == CONFIG_COMMENT)
       continue;
 
-    //Determine if this line of the config file is for the target setting.
+    //Move to the next line if this line is not the setting.
     if (strstr (line, target) == NULL)
       continue;   //not present, search next line.
     else
@@ -176,7 +176,7 @@ char *search_config (const char *target, const char *pathname)
     return NULL;
   }
 
-  //Determine if the target setting was found.
+  //Determine if the target setting was found or the entire file was read.
   if (strstr (line, target) == NULL) {
     fprintf (stderr, "%s: '%s' setting was not found in file './%s'\n",
 	     __FUNCTION__, target, CONFIG_FILE);
@@ -221,7 +221,7 @@ char *search_config (const char *target, const char *pathname)
   }
 
   //Allocate memory for the value string.
-  if ((value = malloc (val_length)) == NULL) {
+  if ((value = malloc (val_length + 1)) == NULL) {
     fprintf (stderr, "%s: malloc: could not allocate the required space\n",
 	     __FUNCTION__);
     return NULL;

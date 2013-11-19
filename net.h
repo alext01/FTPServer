@@ -15,59 +15,90 @@
 #define __NET_H__
 
 
-#include <stdint.h>    //Required for 'uint8_t' in function prototype
+#include <stdint.h>    //required for 'uint8_t' in function prototype
 #include <arpa/inet.h> //required for the INETADDR_STRLEN in function prototype
 
 
 //The maximum number of characters a 16-bit integer can be converted to.
 #define MAX_PORT_STR 6
-
-/* The maximum number of sockets that will be listened to when establishing
- * control connections with any client. */
-#define MAX_SOCK 100
-
 #define BITS_IN_BYTE 8  //The number of bits in a byte.
 
+
 /******************************************************************************
- * Create listening sockets on all available interfaces. The created sockets
- * will be used to establish a control connection with the client. The sockets
- * created are not closed on function return.
+ * accept_connection - constants
  *
- * Arguments: 
- *   sock  - Each listening socket will be set to an element of this array on 
- *           function return.
- *   nsock - Set the number of listening sockets on function return. 
+ * These are the current modes that may be passed to function accept_connection
+ * as the second argument. The mode argument to this function will determine
+ * if standard input should be included in the select() read set, and if the
+ * socket that was passed to accept() may be closed if accept() was successful. 
+ *****************************************************************************/
+#define ACCEPT_CONTROL 1    //Accept a control connection.
+#define ACCEPT_PASV    2    //Accept a connection on a PASV socket.
+
+//See "Other return values" in the accept_connection() function header.
+#define STDIN_READY    -999
+
+
+/******************************************************************************
+ * Create a socket to listen for connections from a new client. The socket
+ * will be created on the interface that is found in the configuration file.
+ * The port of the socket is chosen from the value in the configuration file.
  *
- * Return:  
- *   0   Success
- *  -1   Error
+ * This function should only be used when creating a control connection socket.
+ *
+ * Return values:  
+ *   >0   The socket file descriptor ready to accept() a control connection 
+ *        any/all clients.
+ *   -1   Error
  *
  * Original author: Evan Myers
- *
- * Acknowledgements:
- *    -This function is similar to the function "serv_fb_setup" written by
- *     Evan Myers in his assignment #2 file "net.c".
  *****************************************************************************/
-int get_control_sock (int *sock, int *nsock);
+int get_control_sock (void);
 
 
 /******************************************************************************
- * Establish a control connection from the client on any available interface.
- * Read standard input from the server console for commands such as "shutdown"
- * or "help".
+ * Accept a connection on the socket passed in the first argument. This
+ * function can be used when accepting a control connection or a data
+ * connection.
+ *
+ * modes (passed in the second argument):
+ *    ACCEPT_CONTROL - 
+ *        In this mode, standard input from the terminal that running the
+ *        server will be added to the select() read set. By monitoring stdin,
+ *        the function main() can idle in this function indefinately while
+ *        the server is running, until a new client wishes to connect to the
+ *        server, or a server command is entered.
+ *
+ *        An example of a server command is "help" and "shutdown". For more
+ *        information on all server commands, view the file "servercmd.h".
+ *
+ *    ACCEPT_PASV -
+ *        The caller function should pass this mode when wishing to accept a
+ *        data connection on a socket created with the PASV command. It is
+ *        intended for only one connection to be accepted on a passive socket.
+ *        When this mode is selected, if a connection is accepted, the listening
+ *        socket created in the PASV command will be closed before returning
+ *        from this function.
+ *
  *
  * Arguments:
- *   sock  - An array of listening sockets ready to accept connections.
- *   nsock - The number of listening sockets that is found in the array passed
- *           in the first argument.
+ *      sfd - Accept a connection with this socket.
+ *     mode - Modify the actions performed by this function. See modes above.
+ *
  *
  * Return values:
  *   >0   The socket file descriptor of the newly created control connection.
  *   -1   Error, the connection could not be established with the client.
  *
+ * Other return values:
+ *   STDIN_READY - 
+ *      This value may be returned when the function passed the mode
+ *      ACCEPT_CONTROL as the second argument. This value is returned when
+ *      there is input to read on stdin. 
+ *
  * Original author: Evan Myers
  *****************************************************************************/
-int control_accept (int *sock, int nsock);
+int accept_connection (int sfd, int mode);
 
 
 /******************************************************************************
@@ -78,7 +109,7 @@ int control_accept (int *sock, int nsock);
  *
  * Send the address information of the newly created socket to the client over
  * the control connection. The socket that is created will be ready to accept()
- * a connection from the client to establish a data connection.
+ * a connection from the client.
  *
  * Arguments:
  *   c_sfd - The control connection socket file descriptor.
@@ -106,15 +137,16 @@ int cmd_pasv (int c_sfd, char *cmd_str);
  *               on function return.
  *
  * Return values:
- *   0    Success, the address was found and the value set in the second
+ *   0    Success, the interface was found and the address of that interface
+ *        set in the string passed in the second argument.
  *        argument.
  *  -1    Error, the address has not been set in the second argument. 
  *
  * Original author: Evan Myers
  *
  * Acknowledgements:
- *   This function was created as the result of advice recieved from
- *   Dr. Nicholas Boers to retrieve the external IP address of a computer. In
+ *   Evan - This function was created as the result of advice recieved from
+ *   Dr. Nicholas Boers to retrieve the external IP address of a computer. With
  *   this advice, the link which follows was suggested. When creating this
  *   function, I was following the example code found in this link:
  *   

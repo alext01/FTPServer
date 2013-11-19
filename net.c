@@ -33,7 +33,6 @@
 #include "net.h"
 #include "response.h"
 
-#define SHUTDOWN -999
 
 ///////////////////////////////////////////////////////////////////////////////
 /* These are functions Evan will be creating in the near futer. One should not
@@ -41,18 +40,14 @@
  * the weekend.
  *
  * TODO list:
+ *   1) Create a function to read a command from the control connection.
  *
- *   2) Create a function to compare the results of getifaddr() to the return
- *      of the config file for the PASV command.
- *
- *   2) Create a function to read a command from the control connection.
- *
- *   3) Create a function, or modify control_accept(), to accept a data
+ *   2) Create a function, or modify control_accept(), to accept a data
  *      connection on the socket created by cmd_pasv().
  *
- *   4) Create a function that will monitor the control connection for data
+ *   3) Create a function that will monitor the control connection for data
  *      to read. If the PASV command has been called, and is not yet connected
- *      to the client, a read signal (FD_ISSET) will call the function (3) in
+ *      to the client, a read signal (FD_ISSET) will call the function (2) in
  *      this TODO list.
  *          If the data connection has already been established, then this 
  *      function will monitor the socket for read so as to preform a STORE
@@ -66,7 +61,6 @@
  * Socket connection/creation constants.
  *****************************************************************************/
 #define BACKLOG 10      //Maximum number of clients queued for accept(2).
-#define DEF_PORT "2222" //The default port for the control connection.
 
 
 /******************************************************************************
@@ -94,7 +88,7 @@
  * Local function prototypes.
  *****************************************************************************/
 //used by cmd_pasv()
-static int get_pasv_sock (const char *hostname);
+static int get_pasv_sock (const char *address, const char *port);
 
 //used by cmd_port()
 static int get_port_address (int c_sfd,
@@ -107,118 +101,80 @@ static int port_connect (char *hostname, char *service);
 
 
 /******************************************************************************
- * get_control_sock - see net.h
+ * get_control_sock
  *****************************************************************************/
-int get_control_sock (int *sock, int *nsock)
+int get_control_sock (void)
 {
-  struct addrinfo hints, *result, *iter;  //getaddrinfo() variables
-  int gai;           //getaddrinfo() error string
-  int optval;        //used to set sock options with setsockopt()
-  int sfd;           //the current socket file descriptor
+  //The socket that will listen for control connections from the client.
+  int c_sfd;
 
-  //Ensure all bits are first set to zero for the hints to be accurate.
-  bzero (&hints, sizeof (hints));
-  hints.ai_family = AF_UNSPEC;       //IPv4 or IPv6
-  hints.ai_socktype = SOCK_STREAM;   //stream socket
-  hints.ai_flags = AI_PASSIVE;       //use local IP address
+  //Variables used to collect the IPv4 address of the server.
+  char *interface_setting = "INTERFACE_CONFIG"; //ftp.conf setting
+  char *interface_result;                       //value of the ftp.conf setting
+  char interface_addr[INET_ADDRSTRLEN];
 
-  //Populate a linked list of 'struct addrinfo' elements.
-  if ((gai = getaddrinfo (NULL, DEF_PORT, &hints, &result)) != 0) {
-    fprintf (stderr, "\ngetaddrinfo: %s\n", gai_strerror (gai));
+  //Variables used to collect the default port.
+  char *port_setting = "DEFAULT_PORT_CONFIG"; //ftp.conf setting
+  char *port_result;
+
+  //Read the config file for the default port.
+  if ((port_result = get_config_value (port_setting)) == NULL) {
     return -1;
   }
 
-  /* Iterate through the linked list returned from getaddrinfo(). Attempt to
-   * create a listening socket for each iteration. */
-  *nsock = 0;
-  for (iter = result; iter != NULL && *nsock < MAX_SOCK; iter = iter->ai_next) {
-    //Create a new unnamed (unbound) socket.
-    if ((sfd = socket (iter->ai_family, 
-		       iter->ai_socktype,
-		       iter->ai_protocol)) == -1)
-      continue; //failed, try the next element
-
-    /* Set socket option to reuse the port while the port is in a TIME_WAIT 
-     * state. This will allow the server to be restarted faster. */
-    optval = 1;
-    if (setsockopt (sfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof (optval))
-	== -1) {
-      close (sfd);
-      continue;
-    }
-
-    //Only create an IPv6 socket when using an IPv6 address.
-    if (iter->ai_family == AF_INET6) {
-      if (setsockopt (sfd, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof (optval))
-	  == -1) {
-	//failed, close the socket and try the next element
-	close (sfd);
-	continue;
-      }
-    }
-      
-    //Bind the unnamed socket to a local address, to allow connections.
-    if (bind (sfd, iter->ai_addr, iter->ai_addrlen) == -1) {
-      //failed, close the socket and try the next element
-      close (sfd);
-      continue;
-    }
-
-    //Set the bound socket to accept incoming connection requests.
-    if (listen (sfd, BACKLOG) == -1) {
-      //failed, close the socket and try the next element
-      close (sfd);
-      continue;
-    }
-
-    /* The socket is now listening to the default port. Store the socket
-     * descriptor, and increase the socket count. */
-    sock[*nsock] = sfd;
-    *nsock += 1;
-  }
-
-  freeaddrinfo (result);  //Free the getaddrinfo() result
-  //Return error if no listening sockets were created.
-  if (*nsock == 0) {
-    fprintf (stderr, "%s: no control sockets were created\n", __FUNCTION__);
+  //Read the config file to find which interface to use to make the socket.
+  if ((interface_result = get_config_value (interface_setting)) == NULL) {
     return -1;
   }
 
-  return 0;
+  /* Get the IPv4 address for the interface that was set in the configuration
+   * file.*/
+  if (get_interface_address (interface_result, &interface_addr) == -1) {
+    free (interface_result);
+    free (port_result);
+    return -1;
+  }
+  free (interface_result);
+
+  /* Create a data connection socket that is ready to accept a connection from
+   * the client. */
+  if ((c_sfd = get_pasv_sock (interface_addr, port_result)) == -1) {
+    return -1;
+  }
+  free (port_result);
+  
+  return c_sfd;
 }
 
 
 /******************************************************************************
- * control_accept - see net.h
+ * accept_connection - see net.h
  *****************************************************************************/
-int control_accept (int *sock, int nsock)
+int accept_connection (int listen_sfd, int mode)
 {
-  int sfd;           //the current socket file descriptor
-  int max_sfd;       //select() argument
-  fd_set rfds;
-  int i;
+  fd_set rfds;       //select() read file descriptor set.
   int stdin_fd;      //store the fileno of stdin.
+  int accepted_sfd;  //the socket returned by accept()
 
-  if ((stdin_fd = fileno (stdin)) == -1) {
-    fprintf (stderr, "%s: fileno: %s\n", __FUNCTION__, strerror (errno));
-    return -1;
+  /* Collect the file descriptor for stdin if the applicable option was passed
+   * to this function. */
+  if (mode == ACCEPT_CONTROL) {
+    if ((stdin_fd = fileno (stdin)) == -1) {
+      fprintf (stderr, "%s: fileno: %s\n", __FUNCTION__, strerror (errno));
+      return -1;
+    }
   }
 
   while (1) {
-    //Set the read fd_set bits.
     FD_ZERO (&rfds);
     //Include stdin for the read set. Server can input commands with this.
-    FD_SET (stdin_fd, &rfds);
-    max_sfd = 0;
-    for (i = 0; i < nsock; i++) {
-      FD_SET (sock[i], &rfds);
-      /* Keep track of the largest sfd, to be used in the first argument field 
-       * of select(). */
-      if (sock[i] > max_sfd)
-	max_sfd = sock[i];
-    }
+    FD_SET (listen_sfd, &rfds);
+    /* If the caller function wishes to check for input from stdin, add stdin
+     * to the select read set. */
+    if (mode == ACCEPT_CONTROL)
+      FD_SET (stdin_fd, &rfds);
 
-    if (select (max_sfd + 1, &rfds, NULL, NULL, NULL) == -1) {
+    if (select (listen_sfd + 1, &rfds, NULL, NULL, NULL) == -1) {
       //Restart the loop if the select error is not fatal.
       if (errno == EINTR)
 	continue;
@@ -226,29 +182,34 @@ int control_accept (int *sock, int nsock)
       return -1;
     }
 
-    if (FD_ISSET (stdin_fd, &rfds)) {
-      return SHUTDOWN;
+    //Shutdown the server if input on server console. Update this later.
+    if (mode == ACCEPT_CONTROL) {
+      if (FD_ISSET (stdin_fd, &rfds)) {
+	return STDIN_READY;
+      }
     }
     
     //Attempt to accept a connection with the named socket.
-    for (i = 0; i < nsock; i++) {
-      if (FD_ISSET (sock[i], &rfds)) {
-	if ((sfd = accept (sock[i], NULL, NULL)) == -1) {
-	  // Retry accept() for this descriptor if a non-fatal error.
-	  if (errno == EINTR) {
-	    i--;
-	    continue;  //restart the for loop with the same sfd
-	  }
-	  fprintf (stderr, "%s: accept: %s\n", __FUNCTION__, strerror (errno));
-	  return -1;
-	}
-	break;  //for loop
+    if (FD_ISSET (listen_sfd, &rfds)) {
+      if ((accepted_sfd = accept (listen_sfd, NULL, NULL)) == -1) {
+	// Retry accept() for this descriptor if a non-fatal error.
+	if (errno == EINTR)
+	  continue;
+
+	fprintf (stderr, "%s: accept: %s\n", __FUNCTION__, strerror (errno));
+	return -1;
       }
+      break; //while loop
     }
-    break; //while loop
   }
 
-  return sfd;  //Return the accepted socket file descriptor.
+  /* A socket that is created with the PASV command can only be accepted once.
+   * After a connection has been accepted, close the socket that was listening
+   * for a connection. */
+  if (mode == ACCEPT_PASV)
+    close (listen_sfd);
+
+  return accepted_sfd;  //Return the accepted socket file descriptor.
 }
 
 
@@ -293,7 +254,7 @@ int cmd_pasv (int c_sfd, char *cmd_str)
 
   /* Create a data connection socket that is ready to accept a connection from
    * the client. */
-  if ((d_sfd = get_pasv_sock (interface_addr)) == -1) {
+  if ((d_sfd = get_pasv_sock (interface_addr, NULL)) == -1) {
     return -1;
   }
 
@@ -355,9 +316,13 @@ int get_interface_address (const char *interface,
 
 
 /******************************************************************************
- * Create an TCP socket for the PASV server command. This function should not
- * be used for creating the sockets of the control connection because it will
- * not make a socket for all available interfaces.
+ * Create a listening TCP IPv4 socket. The returned socket file descriptor is
+ * ready to accept() a connection.
+ *
+ * Arguments:
+ *    address - The IPv4 address to create the socket on (eg. "127.0.1.1").
+ *    port    - The port to create the socket with. NULL can be passed to let
+ *              the kernel choose the port.
  *
  * Return values:
  *    > 0   The file descriptor for the newly created data connection socket.
@@ -365,23 +330,23 @@ int get_interface_address (const char *interface,
  *
  * Original author: Evan Myers
  *****************************************************************************/
-static int get_pasv_sock (const char *hostname)
+static int get_pasv_sock (const char *address, const char *port)
 {
   struct addrinfo hints, *result;   //getaddrinfo()
   int gai;         //getaddrinfo error string.
   int sfd;         //the file descriptor of the data connection socket
+  int optval;
 
   //set the gettaddrinfo() hints
   bzero (&hints, sizeof(hints));
   hints.ai_family = AF_INET;        //IPv4, four byte address
   hints.ai_socktype = SOCK_STREAM;  //the data connection is stream
-  //hints.ai_flags = AI_PASSIVE;
 
   /* Populate the linked list found in result. Use the host name entry on the
    * routing table for the node argument. "0" in the second argument will
    * allow  the operating system to choose an available port when bind() is
    * called. */
-  if ((gai = getaddrinfo (hostname, "0", &hints, &result)) == -1) {
+  if ((gai = getaddrinfo (address, port, &hints, &result)) == -1) {
     fprintf (stderr, "%s: getaddrinfo: %s\n", __FUNCTION__, gai_strerror (gai));
     return -1;
   }
@@ -393,6 +358,14 @@ static int get_pasv_sock (const char *hostname)
 		     result->ai_socktype,
 		     result->ai_protocol)) == -1) {
     fprintf (stderr, "%s: socket: %s\n", __FUNCTION__, strerror (errno));
+    return -1;
+  }
+
+  optval = 1;
+  //Set the socket option to reuse port while in the TIME_WAIT state.
+  if (setsockopt (sfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof (optval))
+      == -1) {
+    fprintf (stderr, "%s: setsockopt: %s\n", __FUNCTION__, strerror (errno));
     return -1;
   }
 
@@ -470,8 +443,8 @@ int cmd_port (int c_sfd, char *cmd_str)
  *
  * Arguments:
  *      c_sfd - The socket file descriptor for the control connection.
- *   hostname - The hostname string, passed as a pointer to this function, will
- *              be set to the IPv4 dot notation hostname on function return.
+ *   address  - The address string, passed as a pointer to this function, will
+ *              be set to the IPv4 dot notation address on function return.
  *   service  - The service string, passed as a pointer to this function, will
  *              be set to the port integer value expressed as a string on
  *              function return.
@@ -484,7 +457,7 @@ int cmd_port (int c_sfd, char *cmd_str)
  * Original author: Evan Myers
  *****************************************************************************/
 int get_port_address (int c_sfd,
-		      char (*hostname)[INET_ADDRSTRLEN], 
+		      char (*address)[INET_ADDRSTRLEN], 
 		      char (*service)[MAX_PORT_STR], 
 		      char *cmd_str)
 {
@@ -567,7 +540,7 @@ int get_port_address (int c_sfd,
       i++;
     }
 
-    //Store the next integer on the next pass.
+    //Store the next integer on the next iteration.
     h_index++;
   }
 
@@ -579,7 +552,7 @@ int get_port_address (int c_sfd,
   }
 
   //Store the hostname in IPv4 dot notation. See acknowledgement ONE.
-  sprintf (*hostname, "%"PRIu16".%"PRIu16".%"PRIu16".%"PRIu16,
+  sprintf (*address, "%"PRIu16".%"PRIu16".%"PRIu16".%"PRIu16,
 	   h[0], h[1], h[2], h[3]);
 
   /* Multiply the value of the high order port byte by 256, to shift this byte
