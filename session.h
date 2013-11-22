@@ -2,6 +2,7 @@
 #define __SESSION_H__
 
 #include <stdbool.h>
+#include "queue.h"
 
 
 #define CMD_STRLEN 4096
@@ -30,6 +31,7 @@ typedef struct {
  *
  * Arguments:
  *   c_sfd - control socket file descriptor
+ *   cmd_queu_ptr - queue of commands
  *
  * Returns
  * 	returns 0 when function is complete
@@ -37,6 +39,6 @@ typedef struct {
  * Original author: Justin Slind
  *****************************************************************************/
 
-int session(int c_sfd);
+int session(int c_sfd, struct queue *cmd_queue_ptr);
 
 #endif //__SESSION_H__
