@@ -9,17 +9,17 @@ CC=gcc
 CFLAGS=-g -pedantic -pthread -std=c99 -Wall -D_BSD_SOURCE -D_POSIX_C_SOURCE=200112L
 LDFLAGS=-pthread
 
-all: main
-
 #main program
-main: main.o net.o response.o config.o
+main: config.o controlthread.o main.o net.o response.o servercmd.o
 
 config.o: config.c config.h
-main.o: main.c linkedlist.h threadparam.h
-net.o: net.c net.h response.h
+controlthread.o: controlthread.c controlthread.h
+main.o: main.c controlthread.h net.h servercmd.h
+net.o: net.c config.h net.h response.h
 response.o: response.c net.h response.h
+servercmd.o: servercmd.c config.h net.h servercmd.h
 
 #Clean up the repository.
 .PHONY: clean
 clean:
-	rm main *.o
+	rm main config.o controlthread.o main.o net.o response.o servercmd.o
