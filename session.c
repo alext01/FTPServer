@@ -3,12 +3,13 @@
 #include <sys/select.h>
 #include <string.h>
 #include "session.h"
+#include "queue.h"
 
 
 
 extern int shutdown;
 
-int session(int c_sfd) {   //queue cmd_queue_ptr will need to be sent too
+int session(int c_sfd, struct queue *cmd_queue_ptr) {   //queue cmd_queue_ptr will need to be sent too
 
 	pthread_t command_thread = 0;
 	session_info_t sessioninfo;
@@ -71,6 +72,10 @@ int session(int c_sfd) {   //queue cmd_queue_ptr will need to be sent too
 		else
 			addToQueue(commandstr, cmd_queue_ptr);
 	}
+	//if shutdown was given, abort the current thread if running
+	sessioninfo.cmd_abort = true;
+	if (command_thread)
+		pthread_join(command_thread,NULL);
 	return 0;
 
 }
