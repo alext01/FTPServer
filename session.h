@@ -40,5 +40,6 @@ typedef struct {
  *****************************************************************************/
 
 int session(int c_sfd, struct queue *cmd_queue_ptr);
+void readCmd(char *str,int sock, sessioninfo_t *si);
 
 #endif //__SESSION_H__

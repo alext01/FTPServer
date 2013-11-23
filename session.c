@@ -72,10 +72,30 @@ int session(int c_sfd, struct queue *cmd_queue_ptr) {   //queue cmd_queue_ptr wi
 		else
 			addToQueue(commandstr, cmd_queue_ptr);
 	}
-	//if shutdown was given, abort the current thread if running
+	//if shutdown or quit was given, abort the current thread if running
 	sessioninfo.cmd_abort = true;
 	if (command_thread)
 		pthread_join(command_thread,NULL);
 	return 0;
+
+}
+
+void readCmd(char *str,int sock, sessioninfo_t *si) {
+	int rt = 0;
+	int len = 0;
+
+
+	while (1) {
+		rt = recv(sock,str+len,1,NULL);
+		if (rt > 0) {
+			len += rt;
+			if (str[len] == '\n')
+				return;
+		}
+		else if (rt == 0) {
+			si->cmd_abort = true;
+			return;
+		}
+	}
 
 }
