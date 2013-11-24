@@ -96,7 +96,7 @@ int main (int argc, char *argv[])
     }
 
     //Accept a connection from the client, or read a server command on stdin.
-    if ((*c_sfd = accept_connection (listen_sfd, ACCEPT_CONTROL)) == -1) {
+    if ((*c_sfd = accept_connection (listen_sfd, ACCEPT_CONTROL, NULL)) == -1) {
       continue;
     } 
     else if (*c_sfd == STDIN_READY) {   //There is something to read on stdin.
@@ -124,11 +124,13 @@ int main (int argc, char *argv[])
   }
 
   //Modify this function when the control thread does more than sleep when created.
+  if (active_control_threads > 0)
+    printf ("waiting on threads to resolve...\n");
+
   while (active_control_threads > 0) {
-    printf ("list not empty, try again in 5 seconds...\n");
-    sleep (5);
+    sleep (1);
   }
 
-  printf ("all threads have terminated, exiting program\n");
+  printf ("All threads have terminated, exiting the program\n");
   return 0;
 }
