@@ -9,7 +9,7 @@
 
 extern int shutdown;
 
-int session(int c_sfd, struct queue *cmd_queue_ptr) {   //queue cmd_queue_ptr will need to be sent too
+int session(int c_sfd, queue *cmd_queue_ptr) {   //queue cmd_queue_ptr will need to be sent too
 
 	pthread_t command_thread = 0;
 	session_info_t sessioninfo;
@@ -44,7 +44,7 @@ int session(int c_sfd, struct queue *cmd_queue_ptr) {   //queue cmd_queue_ptr wi
 
 		//if there's anything to read on the control socket, do so.
 		if (FD_ISSET(c_sfd, &rfds))
-			readCmd(commandstr, c_sfd);
+			readCmd(commandstr, c_sfd, &sessioninfo);
 
 		//if command is ABORT let the current thread know
 		if (strncmp(commandstr,"ABRO",4))
@@ -54,8 +54,8 @@ int session(int c_sfd, struct queue *cmd_queue_ptr) {   //queue cmd_queue_ptr wi
 		//on the command_queue or the current command
 		else if (!command_thread) {
 			if (cmd_queue_ptr) {
-				addToQueue(commandstr, cmd_queue_ptr);
-				pullFromQueue(commandstr, cmd_queue_ptr);
+				cmd_queue_ptr = addToQueue(commandstr, cmd_queue_ptr);
+				cmd_queue_ptr = pullFromQueue(commandstr, cmd_queue_ptr);
 			}
 			strcpy(sessioninfo.cmd_string,commandstr);
 			pthread_create(&command_thread, &attr, &command_switch, (void*) &sessioninfo);
@@ -70,7 +70,7 @@ int session(int c_sfd, struct queue *cmd_queue_ptr) {   //queue cmd_queue_ptr wi
 		}
 		//add the command to the command queue
 		else
-			addToQueue(commandstr, cmd_queue_ptr);
+			cmd_queue_ptr = addToQueue(commandstr, cmd_queue_ptr);
 	}
 	//if shutdown or quit was given, abort the current thread if running
 	sessioninfo.cmd_abort = true;
@@ -80,7 +80,7 @@ int session(int c_sfd, struct queue *cmd_queue_ptr) {   //queue cmd_queue_ptr wi
 
 }
 
-void readCmd(char *str,int sock, sessioninfo_t *si) {
+void readCmd(char *str,int sock, session_info_t *si) {
 	int rt = 0;
 	int len = 0;
 
