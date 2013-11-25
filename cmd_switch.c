@@ -36,13 +36,13 @@
 
 #define MIN_ARGS 1
 
-void command_switch(void * arg)
+void command_switch(void * param)
 { //BEGIN function 'command_switch'
 
-  session_info_t *si = (session_info_t*)arg;
+  session_info_t *si = (session_info_t*)param;
   int numArgs;
 
-  char *cmd;
+  char *cmd, arg;
 
 
   char *cmdLine = si->cmd_string;
