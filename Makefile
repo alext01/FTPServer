@@ -22,4 +22,4 @@ servercmd.o: servercmd.c config.h net.h servercmd.h
 #Clean up the repository.
 .PHONY: clean
 clean:
-	rm main config.o controlthread.o main.o net.o response.o servercmd.o
+	$(RM) main config.o controlthread.o main.o net.o response.o servercmd.o

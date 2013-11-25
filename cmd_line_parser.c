@@ -1,9 +1,36 @@
+//=======================================================================
+// Assignment #03 - FTP Server
+//=======================================================================
+// Date:        November 2013
+// Course:      CMPT 361 - Introduction to Networks
+// Instructor:  Dr. Nicholas M. Boers
+// Students:    Evan Myers
+//              Justin Slind
+//              Alex Tai
+//              James Yoo
+//=======================================================================
+
+
+//=======================================================================
+// Filename:
+//     cmd_line_parser.c
+//=======================================================================
+// Brief Description:
 //
+//
+//
+//=======================================================================
+
+
+//C Library References
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
+
+//Header File References
 #include "cmd_line_parser.h"
+
 
 //
 char *command_extract_cmd(const char *cmdString)
@@ -44,15 +71,6 @@ char *command_extract_arg(const char *cmdString)
   return argString;
 
 } //END function 'command_extract_arg'
-
-
-//
-void command_arg_parser()
-{ //START function 'command_arg_parser'
-
-  
-
-} //END function 'command_arg_parser'
 
 
 //
