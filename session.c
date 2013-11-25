@@ -116,6 +116,7 @@ void readCmd(char *str, int sock, session_info_t *si) {
 		}
 		else if (rt == 0) {
 			si->cmd_abort = true;
+			si->cmd_quit = true;
 			return;
 		}
 
