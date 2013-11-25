@@ -124,5 +124,5 @@ void command_switch(void * param)
     printf("ERROR: Insufficient Arguments!\n");
 
   }
-
+  si->cmd_complete = true;
 } //END function 'command_switch'

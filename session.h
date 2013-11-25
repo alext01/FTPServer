@@ -8,7 +8,7 @@
 #define CMD_STRLEN 4096
 #define USER_STRLEN 64
 #define ABORT_STRLEN 5
-#define USEC_TIMEOUT 500
+#define USEC_TIMEOUT 500000
 
 
 

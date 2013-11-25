@@ -37,7 +37,7 @@
  *****************************************************************************/
 void *control_thread (void * arg) {
   int *c_sfd = arg;
-  queue *cmd_queue_ptr;
+  queue *cmd_queue_ptr = NULL;
 
   //Send the welcome message to the client.
   while (send_welcome_mesg_220 (*c_sfd) != 0);
