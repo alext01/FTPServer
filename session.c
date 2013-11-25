@@ -14,8 +14,9 @@
 
 extern int shutdown_server;
 
-int session(int c_sfd, queue *cmd_queue_ptr) {   //queue cmd_queue_ptr will need to be sent too
+int session(int c_sfd) {   //queue cmd_queue_ptr will need to be sent too
 
+	queue *cmd_queue_ptr = NULL;
 	pthread_t command_thread = 0;
 	session_info_t sessioninfo;
 	pthread_attr_t attr;
@@ -37,7 +38,7 @@ int session(int c_sfd, queue *cmd_queue_ptr) {   //queue cmd_queue_ptr will need
 
 
 	//check if the server is shutting down or if the quit cmd was given
-	while (!shutdown_server && !sessioninfo.cmd_quit && !sessioninfo.cmd_abort) {
+	while (!shutdown_server && !sessioninfo.cmd_quit) {
 
 		FD_ZERO(&rfds);
 		FD_SET(c_sfd,&rfds);
@@ -91,6 +92,7 @@ int session(int c_sfd, queue *cmd_queue_ptr) {   //queue cmd_queue_ptr will need
 	if (command_thread)
 		pthread_join(command_thread,NULL);
 	printf("session finished\n");
+	freeQueue(cmd_queue_ptr);
 	return 0;
 
 }

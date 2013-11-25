@@ -8,7 +8,7 @@
 #define CMD_STRLEN 4096
 #define USER_STRLEN 64
 #define ABORT_STRLEN 5
-#define USEC_TIMEOUT 500000
+#define USEC_TIMEOUT 500
 
 
 
@@ -39,7 +39,7 @@ typedef struct {
  * Original author: Justin Slind
  *****************************************************************************/
 
-int session(int c_sfd, queue *cmd_queue_ptr);
+int session(int c_sfd);
 void readCmd(char *str,int sock, session_info_t *si);
 
 #endif //__SESSION_H__

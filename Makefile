@@ -13,7 +13,7 @@ LDFLAGS=-pthread
 main: config.o controlthread.o main.o net.o response.o servercmd.o session.o queue.o cmd_switch.o cmd_line_parser.o
 
 config.o: config.c config.h
-controlthread.o: controlthread.c controlthread.h session.h queue.h
+controlthread.o: controlthread.c controlthread.h session.h
 main.o: main.c controlthread.h net.h servercmd.h
 net.o: net.c config.h net.h response.h
 response.o: response.c net.h response.h
