@@ -42,10 +42,9 @@ void command_switch(void * arg)
   session_info_t *si = (session_info_t*)arg;
   int numArgs;
 
-  char *cmd,
-       *arg;
-
   char *cmd;
+
+
   char *cmdLine = si->cmd_string;
 
 
