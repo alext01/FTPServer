@@ -3,7 +3,7 @@
 
 typedef struct node {
 	char cmd[4096];
-	node_t *next;
+	struct node *next;
 } queue;
 
 /******************************************************************************
