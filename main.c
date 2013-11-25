@@ -16,6 +16,7 @@
  *****************************************************************************/
 #include <errno.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,7 +42,7 @@ int active_control_threads = 0;
 /* Threads monitor this variable, when main() sets this value to TRUE, all
  * threads will terminate themselves after closing open sockets and freeing
  * heap memory. This variable is only modified by main(). */
-int shutdown_server = FALSE;
+int shutdown_server = false;
 
 
 /******************************************************************************
@@ -101,9 +102,8 @@ int main (int argc, char *argv[])
     } 
     else if (*c_sfd == STDIN_READY) {   //There is something to read on stdin.
       if (read_server_cmd () == SHUTDOWN_SERVER) {
-	shutdown_server = TRUE;
+	shutdown_server = true;
 	free (c_sfd);
-	c_sfd = NULL;
 	break;
       } else {
 	continue;
@@ -114,7 +114,6 @@ int main (int argc, char *argv[])
     if (pthread_create (&thread, &attr, &control_thread, c_sfd) != 0) {
       fprintf (stderr, "%s: pthread_create: %s\n", __FUNCTION__, strerror (errno));
       free (c_sfd);
-      c_sfd = NULL;
       continue;
     }
 
@@ -131,6 +130,6 @@ int main (int argc, char *argv[])
     sleep (1);
   }
 
-  printf ("All threads have terminated, exiting the program\n");
+  printf ("All threads have terminated, exiting the program.\n");
   return 0;
 }

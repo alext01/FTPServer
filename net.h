@@ -18,9 +18,7 @@
 #include <arpa/inet.h> //required for the INETADDR_STRLEN in function prototype
 #include <stdbool.h>   //required for 'bool' in function prototype
 #include <stdint.h>    //required for 'uint8_t' in function prototype
-
-//Change this line to session.h when it compiles.
-#include "fake_session.h" //required for 'session_info_t' in function prototype
+#include "session.h"   //required for 'session_info_t' in function prototype
 
 
 //The maximum number of characters a 16-bit integer can be converted to.

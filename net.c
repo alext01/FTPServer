@@ -33,9 +33,7 @@
 #include "config.h"
 #include "net.h"
 #include "response.h"
-
-
-#include "fake_session.h"//change this to "session.h" when "session.o" compiles
+#include "session.h"
 
 
 /******************************************************************************
@@ -99,12 +97,14 @@ int get_control_sock (void)
   char *port_result;
 
   //Read the config file for the default port.
-  if ((port_result = get_config_value (port_setting)) == NULL) {
+  if ((port_result = get_config_value (port_setting, 
+				       NET_CONFIG_FILE)) == NULL) {
     return -1;
   }
 
   //Read the config file to find which interface to use to make the socket.
-  if ((interface_result = get_config_value (interface_setting)) == NULL) {
+  if ((interface_result = get_config_value (interface_setting,
+					    NET_CONFIG_FILE)) == NULL) {
     return -1;
   }
 
@@ -269,7 +269,8 @@ int cmd_pasv (session_info_t *session, char *cmd_str)
 
 
   //Read the config file to find which interface to use to make the socket.
-  if ((interface_result = get_config_value (interface_setting)) == NULL) {
+  if ((interface_result = get_config_value (interface_setting,
+					    NET_CONFIG_FILE)) == NULL) {
     return -1;
   }
 
