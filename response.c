@@ -21,8 +21,26 @@
  * standard, default terminal line. */
 #define STD_TERM_SZ 80  //The standard number of characters in a terminal line.
 
+
 /******************************************************************************
- * send_mesg_227
+ * send_welcome_mesg_220 - see response.h
+ *****************************************************************************/
+int send_welcome_mesg_220 (int c_sfd)
+{
+  uint8_t mesg[] = "220 FTP server ready.\n";
+  int mesg_len;
+
+  //Send the complete response message.
+  mesg_len = strlen ((char *)mesg);
+  if (send_all (c_sfd, mesg, mesg_len) == -1) {
+    return -1;
+  }
+  
+  return 0;
+}
+
+/******************************************************************************
+ * send_mesg_227 - see response.h
  *****************************************************************************/
 int send_mesg_227 (int c_sfd, int d_sfd)
 {
@@ -86,7 +104,7 @@ int send_mesg_227 (int c_sfd, int d_sfd)
 
 
 /******************************************************************************
- * send_mesg_500
+ * send_mesg_500 - see response.h
  *****************************************************************************/
 int send_mesg_500 (int c_sfd)
 {
@@ -104,7 +122,7 @@ int send_mesg_500 (int c_sfd)
 
 
 /******************************************************************************
- * send_mesg_501
+ * send_mesg_501 - see response.h
  *****************************************************************************/
 int send_mesg_501 (int c_sfd)
 {

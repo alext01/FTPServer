@@ -15,6 +15,24 @@
 #ifndef __RESPONSE_H__
 #define __RESPONSE_H__
 
+
+/******************************************************************************
+ * Send the welcome message to a newly connected client. This function should
+ * be called after a control connection has been established with a client.
+ *
+ * Arguments:
+ *   c_sfd - The file descriptor of the control connection socket. The response
+ *           message will be sent to this socket.
+ *
+ * Return values:
+ *    0   The message was successfuly sent to the socket.
+ *   -1   The entire message was not sent to the socket.
+ *
+ * Original author: Evan Myers
+ *****************************************************************************/
+int send_welcome_mesg_220 (int c_sfd);
+
+
 /******************************************************************************
  * This function generates a posotive response message for the PASV command
  * as specified in 'rfc 959'. The code of this message is 227.
@@ -36,7 +54,7 @@
  *
  * Return values:
  *    0   The message was successfuly sent to the socket.
- *   -1   The message was not sent to the socket.
+ *   -1   The entire message was not sent to the socket.
  *
  * Original author: Evan Myers
  *****************************************************************************/
@@ -53,7 +71,7 @@ int send_mesg_227 (int c_sfd, int d_sfd);
  *
  * Return values:
  *   0    The message was successfuly sent to the socket.
- *  -1    The message was not sent to the socket.
+ *  -1    The entire message was not sent to the socket.
  *
  * Original author: Evan Myers
  *****************************************************************************/
@@ -70,7 +88,7 @@ int send_mesg_500 (int c_sfd);
  *
  * Return values:
  *   0    The message was successfuly sent to the socket.
- *  -1    The message was not sent to the socket.
+ *  -1    The entire message was not sent to the socket.
  *
  * Original author: Evan Myers
  *****************************************************************************/

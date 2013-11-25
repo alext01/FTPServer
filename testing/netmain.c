@@ -16,15 +16,16 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "../config.h"
-#include "../net.h"
+#include "config.h"
+#include "net.h"
+#include "fake_session.h"
 
 //Network testing main. Do not confuse this with "main.c" function main().
 //Read the file header.
 int main (int argc, char *argv[])
 {
-  int c_sfd, d_sfd, d2_sfd;//control and data connection socket file descriptors
   int c_listen_sfd;
+  session_info_t session;
 
   //Temporary, recv a command from the client over a socket.
   char buf[80];
@@ -34,6 +35,8 @@ int main (int argc, char *argv[])
   char my_ip[INET_ADDRSTRLEN];
   char *setting = "INTERFACE_CONFIG";
   char *interface;
+
+  int ch;
 
   //Get the interface from the config file.
   if ((interface = get_config_value ((const char *)setting)) == NULL)
@@ -53,7 +56,9 @@ int main (int argc, char *argv[])
 
   //Accept a control connection.
   while (1) {
-    if ((c_sfd = accept_connection (c_listen_sfd, ACCEPT_CONTROL)) == -1) {
+    if ((session.c_sfd = accept_connection (c_listen_sfd, 
+					    ACCEPT_CONTROL,
+					    NULL)) == -1) {
       fprintf (stderr, "%s: error accepting control connection\n", argv[0]);
       continue;
     }
@@ -65,7 +70,7 @@ int main (int argc, char *argv[])
 
   //Read a message, no guarantee the entire message is read.
   nread = 0;
-  if ((nread = recv (c_sfd, buf, 80, 0)) == -1) {
+  if ((nread = recv (session.c_sfd, buf, 80, 0)) == -1) {
     fprintf (stderr, "%s: recv: %s\n", __FUNCTION__, strerror (errno));
     return -1;
   }
@@ -73,27 +78,17 @@ int main (int argc, char *argv[])
 
 
   //Create a data connnection socket.
-  if ((d_sfd = cmd_pasv (c_sfd, buf)) == -1) {
+  if ((session.d_sfd = cmd_pasv (&session, buf)) == -1) {
     printf ("%s: error while creating data connection\n", argv[0]);
     return -1;
+  } else {
+    printf ("passive socket connection accepted\n");
   }
- 
-
-  //Accept data connection on the socket created with the PASV command.
-  while (1) {
-    if ((d_sfd = accept_connection (d_sfd, ACCEPT_PASV)) == -1) {
-      fprintf (stderr, "%s: error accepting control connection\n", argv[0]);
-      continue;
-    }
-    break;
-  }
-  printf ("passive socket connection accepted\n");
-
 
 
   //Read a message, no guarantee the entire message is read.
   nread = 0;
-  if ((nread = recv (c_sfd, buf, 80, 0)) == -1) {
+  if ((nread = recv (session.c_sfd, buf, 80, 0)) == -1) {
     fprintf (stderr, "%s: recv: %s\n", __FUNCTION__, strerror (errno));
     return -1;
   }
@@ -102,18 +97,19 @@ int main (int argc, char *argv[])
 
 
   //Testing PORT command.
-  if ((d2_sfd = cmd_port (c_sfd, buf)) == -1) {
+  if ((session.d_sfd = cmd_port (&session, buf)) == -1) {
     fprintf (stderr, "cmd_port: could not create the connection\n");
   } else {
     //Mesg tells us if the data connection is reachable.
     printf ("data connection established. Exiting program...\n");
   }
 
+  while ((ch = getchar()) != 'q');
+
   //Close all sockets before exiting.
   close (c_listen_sfd);
-  close (c_sfd);
-  close (d_sfd);
-  close (d2_sfd);
+  close (session.c_sfd);
+  close (session.d_sfd);
 
   return 0;
 }

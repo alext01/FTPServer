@@ -60,7 +60,8 @@ static int server_info (void)
   char *port;
 
   //Get the chosen interface from the server configuration file.
-  if ((interface = get_config_value ("INTERFACE_CONFIG")) == NULL)
+  if ((interface = get_config_value ("INTERFACE_CONFIG",
+				     NET_CONFIG_FILE)) == NULL)
     return -1;
 
   //Get the IPv4 address for the interface.
@@ -71,7 +72,8 @@ static int server_info (void)
   free (interface);
 
   //Get the chosen port from the server configuration file.
-  if ((port = get_config_value ("DEFAULT_PORT_CONFIG")) == NULL)
+  if ((port = get_config_value ("DEFAULT_PORT_CONFIG",
+				NET_CONFIG_FILE)) == NULL)
     return -1;
 
   //Print the results to the console.
@@ -112,18 +114,15 @@ int read_server_cmd (void)
 
   if (strcmp (cmd, "help\n") == 0) {
     print_help ();
-    return 0;
-  } 
-  else if (strcmp (cmd, "serverinfo\n") == 0) {
+    return 0; 
+  } else if (strcmp (cmd, "serverinfo\n") == 0) {
     if (server_info () == -1)
       return -1;
     return 0;
-  } 
-  else if (strcmp (cmd, "shutdown\n") == 0) {
+  } else if (strcmp (cmd, "shutdown\n") == 0) {
     return SHUTDOWN_SERVER;
-  }
-  else {
-    printf ("command not recognized, enter \"help\" for a list of commands\n");
+  } else {
+    printf ("Command not recognized, enter \"help\" for a list of commands.\n");
   }
 
   return 0;

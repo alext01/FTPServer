@@ -15,8 +15,10 @@
 #define __NET_H__
 
 
-#include <stdint.h>    //required for 'uint8_t' in function prototype
 #include <arpa/inet.h> //required for the INETADDR_STRLEN in function prototype
+#include <stdbool.h>   //required for 'bool' in function prototype
+#include <stdint.h>    //required for 'uint8_t' in function prototype
+#include "session.h"   //required for 'session_info_t' in function prototype
 
 
 //The maximum number of characters a 16-bit integer can be converted to.
@@ -80,11 +82,22 @@ int get_control_sock (void);
  *        socket created in the PASV command will be closed before returning
  *        from this function.
  *
+ *        This mode should be selected when the function caller is a command
+ *        thread.
  *
  * Arguments:
- *      sfd - Accept a connection with this socket.
- *     mode - Modify the actions performed by this function. See modes above.
+ *  listen_sfd - Accept a connection with this socket.
  *
+ *        mode - Modify the actions performed by this function. See modes above.
+ *
+ *        quit - If a command thread is running this function, this value will
+ *               be checked periodically while accepting a connection. If the
+ *               thread creator wishes the thread to terminate, the thread
+ *               creator will modify this value.
+ *
+ *               When the function caller is not a command thread, NULL should
+ *               be passed in this argument. It will not be checked if mode
+ *               was set appropriately.
  *
  * Return values:
  *   >0   The socket file descriptor of the newly created control connection.
@@ -98,7 +111,7 @@ int get_control_sock (void);
  *
  * Original author: Evan Myers
  *****************************************************************************/
-int accept_connection (int sfd, int mode);
+int accept_connection (int sfd, int mode, bool *quit);
 
 
 /******************************************************************************
@@ -112,7 +125,7 @@ int accept_connection (int sfd, int mode);
  * a connection from the client.
  *
  * Arguments:
- *   c_sfd - The control connection socket file descriptor.
+ *   session  - A pointer to the session information.
  *   cmd_str  - The string of the pasv command. "PASV\n"
  *
  * Return values:
@@ -121,7 +134,7 @@ int accept_connection (int sfd, int mode);
  *
  * Original author: Evan Myers
  *****************************************************************************/
-int cmd_pasv (int c_sfd, char *cmd_str);
+int cmd_pasv (session_info_t *session, char *cmd_str);
 
 
 /******************************************************************************
@@ -161,7 +174,7 @@ int get_interface_address (const char *interface,
  * will create a data connection to the client if successful.
  *
  * Arguments:
- *   c_sfd    - The control connection socket file descriptor.
+ *   session  - A pointer to the session information.
  *   cmd_str  - The string of the port command. "PORT h1,h2,h3,h4,p1,p2\n"
  *
  * Return values:
@@ -170,7 +183,7 @@ int get_interface_address (const char *interface,
  *
  * Original author: Evan Myers
  *****************************************************************************/
-int cmd_port (int c_sfd, char *cmd_str);
+int cmd_port (session_info_t *session, char *cmd_str);
 
 
 /******************************************************************************
