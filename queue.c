@@ -7,6 +7,7 @@
 queue* addToQueue(char *commandstr, queue *cmd_queue_ptr) {
 	queue *temp, *newptr = malloc(sizeof(queue));
 	strcpy(newptr->cmd,commandstr);
+	newptr->next = NULL;
 
 
 	if (cmd_queue_ptr) {
@@ -36,9 +37,13 @@ queue* pullFromQueue(char *commandstr, queue *cmd_queue_ptr) {
 }
 
 void freeQueue(queue *cmd_queue_ptr) {
-	if (cmd_queue_ptr->next)
-		freeQueue(cmd_queue_ptr->next);
-	free(cmd_queue_ptr);
+	if (cmd_queue_ptr) {
+		if (cmd_queue_ptr->next) {
+			freeQueue(cmd_queue_ptr->next);
+			cmd_queue_ptr->next = NULL;
+		}
+		free(cmd_queue_ptr);
+	}
 	return;
 }
 
