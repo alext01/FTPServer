@@ -24,6 +24,7 @@
 #include <string.h>
 #include "controlthread.h"
 #include "response.h"
+#include "session.h"
 #include "queue.h"
 
 #include <unistd.h> //required for sleep(), remove me later.
@@ -36,13 +37,13 @@
  *****************************************************************************/
 void *control_thread (void * arg) {
   int *c_sfd = arg;
-  struct queue *cmd_queue_ptr;
+  queue *cmd_queue_ptr;
 
   //Send the welcome message to the client.
   while (send_welcome_mesg_220 (*c_sfd) != 0);
 
   //Transfer control of the thread to session() to perform user commands.
-  session (*c_sfd, &cmd_queue_ptr);
+  session (*c_sfd, cmd_queue_ptr);
 
   //Free all heap memory. Close sockets which are no longer required.
   close (*c_sfd);
