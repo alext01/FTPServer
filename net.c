@@ -22,6 +22,7 @@
 #include <ifaddrs.h>
 #include <inttypes.h>
 #include <netdb.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,29 +33,7 @@
 #include "config.h"
 #include "net.h"
 #include "response.h"
-
-
-///////////////////////////////////////////////////////////////////////////////
-/* These are functions Evan will be creating in the near futer. One should not
- * expect these functions to be fully tested or functional before the end of
- * the weekend.
- *
- * TODO list:
- *   1) Create a function to read a command from the control connection.
- *
- *   2) Create a function, or modify control_accept(), to accept a data
- *      connection on the socket created by cmd_pasv().
- *
- *   3) Create a function that will monitor the control connection for data
- *      to read. If the PASV command has been called, and is not yet connected
- *      to the client, a read signal (FD_ISSET) will call the function (2) in
- *      this TODO list.
- *          If the data connection has already been established, then this 
- *      function will monitor the socket for read so as to preform a STORE
- *      command for example. This will require an (integer?) value to be passed
- *      to the function from main() that tells the function whether it should
- *      be expected to recieve data from the data connection socket. */
-///////////////////////////////////////////////////////////////////////////////
+#include "session.h"
 
 
 /******************************************************************************
@@ -118,12 +97,14 @@ int get_control_sock (void)
   char *port_result;
 
   //Read the config file for the default port.
-  if ((port_result = get_config_value (port_setting)) == NULL) {
+  if ((port_result = get_config_value (port_setting, 
+				       NET_CONFIG_FILE)) == NULL) {
     return -1;
   }
 
   //Read the config file to find which interface to use to make the socket.
-  if ((interface_result = get_config_value (interface_setting)) == NULL) {
+  if ((interface_result = get_config_value (interface_setting,
+					    NET_CONFIG_FILE)) == NULL) {
     return -1;
   }
 
@@ -150,19 +131,33 @@ int get_control_sock (void)
 /******************************************************************************
  * accept_connection - see net.h
  *****************************************************************************/
-int accept_connection (int listen_sfd, int mode)
+int accept_connection (int listen_sfd, int mode, bool *quit)
 {
   fd_set rfds;       //select() read file descriptor set.
   int stdin_fd;      //store the fileno of stdin.
   int accepted_sfd;  //the socket returned by accept()
 
-  /* Collect the file descriptor for stdin if the applicable option was passed
-   * to this function. */
+  //Used to check if the thread should return, for ACCEPT_PASV
+  struct timeval timeout;
+  struct timeval *timeout_ptr;
+  int nready;                    //Used to check for select() timeout.
+
   if (mode == ACCEPT_CONTROL) {
+    //Collect the file descriptor for stdin, to detect server commands.
     if ((stdin_fd = fileno (stdin)) == -1) {
       fprintf (stderr, "%s: fileno: %s\n", __FUNCTION__, strerror (errno));
       return -1;
     }
+
+    /* There is no timeout. select() will block indefinately a client is
+     * attempting to create a control connection, or a command is entered
+     * on the server console. */
+    timeout_ptr = NULL;
+  } else {
+    /* select() will block until there is a data connection to accept(), or
+     * it is time to check if the caller who created this command thread
+     * wishes this command thread to terminate. */
+    timeout_ptr = &timeout;
   }
 
   while (1) {
@@ -174,15 +169,40 @@ int accept_connection (int listen_sfd, int mode)
     if (mode == ACCEPT_CONTROL)
       FD_SET (stdin_fd, &rfds);
 
-    if (select (listen_sfd + 1, &rfds, NULL, NULL, NULL) == -1) {
-      //Restart the loop if the select error is not fatal.
+
+    /* Set this value in the loop to make linux systems operate the same as
+     * "most others". See 'man 2 select' and search "The timeout". */
+    if (mode == ACCEPT_PASV) {
+      timeout.tv_sec = 0;
+      timeout.tv_usec = USEC_TIMEOUT;
+    }
+
+
+    /* The control thread running this function may be asked to terminate by
+     * session() so that the program may exit. Check the this value on
+     * timeout or when passing normally.
+     *
+     * The timeout is NULL when the mode argument to this function is equal to
+     * ACCEPT_CONTROL. In this case, there is no timeout. */
+    if ((nready = select (listen_sfd + 1, &rfds, NULL, NULL, timeout_ptr)) == -1) {
       if (errno == EINTR)
 	continue;
       fprintf (stderr, "%s: select: %s\n", __FUNCTION__, strerror (errno));
       return -1;
     }
 
-    //Shutdown the server if input on server console. Update this later.
+    //Return to exit the thread when session() requests the thread to terminate.
+    if ((quit != NULL) && (*quit == true)) {
+      close (listen_sfd);
+      return -1;
+    }
+
+    //Restart the loop on timeout.
+    if (nready == 0)
+      continue;
+
+    /* Return from the function to read a server command when there is input
+     * in stdin buffer. */
     if (mode == ACCEPT_CONTROL) {
       if (FD_ISSET (stdin_fd, &rfds)) {
 	return STDIN_READY;
@@ -213,32 +233,44 @@ int accept_connection (int listen_sfd, int mode)
 }
 
 
+
 /******************************************************************************
  * cmd_pasv - see net.h
  *****************************************************************************/
-int cmd_pasv (int c_sfd, char *cmd_str)
+int cmd_pasv (session_info_t *session, char *cmd_str)
 {
-  int d_sfd; //data connection socket file descriptor
   char *expected_str = "PASV\n";  //the only legal cmd_str for this function.
+
 
   //The setting to be searched for in the config file.
   char *interface_setting = "INTERFACE_CONFIG";
   //The value for the setting that was searched for in the config file.
   char *interface_result;
-
   //The IPv4 address of the configuration file interface.
   char interface_addr[INET_ADDRSTRLEN];
+
 
   /* Ensure the right command was passed to this function, and that there are no
    * arguments. */
   if (strcmp (cmd_str, expected_str) != 0) {
-    send_mesg_500 (c_sfd);
+    send_mesg_500 (session->c_sfd);
     return -1;
   }
 
+
+  /* The server "MUST" close the data connection port when:
+   * "The port specification is changed by a command from the user".
+   * Source: rfc 959 page 19 */
+  if (session->d_sfd != 0) {
+    if (close (session->d_sfd) == -1)
+      fprintf (stderr, "%s: close: %s\n", __FUNCTION__, strerror (errno));
+    session->d_sfd = 0;
+  }
+
+
   //Read the config file to find which interface to use to make the socket.
-  if ((interface_result = get_config_value (interface_setting)) == NULL) {
-    //internal error message code (insert on this line).
+  if ((interface_result = get_config_value (interface_setting,
+					    NET_CONFIG_FILE)) == NULL) {
     return -1;
   }
 
@@ -246,23 +278,35 @@ int cmd_pasv (int c_sfd, char *cmd_str)
    * file. Free the interface retrieved from the config file, it is no longer
    * required. */
   if (get_interface_address (interface_result, &interface_addr) == -1) {
-    //internal error message code (insert on this line).
     free (interface_result);
     return -1;
   }
   free (interface_result);
 
+
   /* Create a data connection socket that is ready to accept a connection from
    * the client. */
-  if ((d_sfd = get_pasv_sock (interface_addr, NULL)) == -1) {
+  if ((session->d_sfd = get_pasv_sock (interface_addr, NULL)) == -1) {
     return -1;
   }
 
   //Send the data connection address information to the control socket.
-  if (send_mesg_227 (c_sfd, d_sfd) == -1)
-     return -1;
+  if (send_mesg_227 (session->c_sfd, session->d_sfd) == -1) {
+    close (session->d_sfd);
+    session->d_sfd = 0;
+    return -1;
+  }
  
-  return d_sfd;
+  //Accept a connection from the client on the data connection socket.
+  if ((session->d_sfd = accept_connection (session->d_sfd,
+					   ACCEPT_PASV,
+					   &session->cmd_quit)) == -1) {
+    close (session->d_sfd);
+    session->d_sfd = 0;
+    return -1;
+  }
+
+  return session->d_sfd;
 }
 
 
@@ -393,39 +437,47 @@ static int get_pasv_sock (const char *address, const char *port)
 /******************************************************************************
  * cmd_port - see net.h
  *****************************************************************************/
-int cmd_port (int c_sfd, char *cmd_str)
+int cmd_port (session_info_t *session, char *cmd_str)
 {
-  int d_sfd;        //The data connection socket file descriptor.
   int cmd_str_len;  //The length of the command string.
   //The data connection address to connect to.
   char hostname[INET_ADDRSTRLEN];  //Maximum size of an IPv4 dot notation addr.
   char service[MAX_PORT_STR];
+
+  /* The server "MUST" close the data connection port when: 
+   *"The port specification is changed by a command from the user".
+   * Source: rfc 959 page 19 */
+  if (session->d_sfd > 0) {
+    if (close (session->d_sfd) == -1)
+      fprintf (stderr, "%s: close: %s\n", __FUNCTION__, strerror (errno));
+    session->d_sfd = 0;
+  }
 
   /* Filter invalid PORT arguments by comparing the length of the argument. Too
    * many or too little number of characters in the string means that the
    * argument is invalid. */
   if ((cmd_str_len = strlen (cmd_str)) < (MIN_PORT_STR_LEN - 1)) {
     fprintf (stderr, "%s: PORT argument too short\n", __FUNCTION__);
-    send_mesg_501 (c_sfd);
+    send_mesg_501 (session->c_sfd);
     return -1;
   } else if (cmd_str_len > (MAX_PORT_STR_LEN - 1)) {
     fprintf (stderr, "%s: PORT argument too long\n", __FUNCTION__);
-    send_mesg_501 (c_sfd);
+    send_mesg_501 (session->c_sfd);
     return -1;
   }    
 
   //Convert the address h1,h2,h3,h4,p1,p2 into a hostname and service.
-  if (get_port_address (c_sfd, &hostname, &service, cmd_str) == -1) {
+  if (get_port_address (session->c_sfd, &hostname, &service, cmd_str) == -1) {
     return -1;
   }
 
   //Create a data connection to the hostname and service provided by the client.
-  if ((d_sfd = port_connect (hostname, service)) == -1) {
-    //Error message
+  if ((session->d_sfd = port_connect (hostname, service)) == -1) {
+    //Error message code to control socket.
     return -1;
   }
   
-  return d_sfd;
+  return session->d_sfd;
 }
 
 
@@ -644,4 +696,3 @@ int send_all (int sfd, uint8_t *mesg, int mesg_len)
 
   return 0;
 }
-  
