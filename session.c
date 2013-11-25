@@ -10,7 +10,7 @@
 
 
 
-extern int shutdown;
+extern int shutdown_server;
 
 int session(int c_sfd, queue *cmd_queue_ptr) {   //queue cmd_queue_ptr will need to be sent too
 
@@ -35,7 +35,7 @@ int session(int c_sfd, queue *cmd_queue_ptr) {   //queue cmd_queue_ptr will need
 
 
 	//check if the server is shutting down or if the quit cmd was given
-	while (!shutdown && !sessioninfo.cmd_quit) {
+	while (!shutdown_server && !sessioninfo.cmd_quit) {
 
 		FD_ZERO(&rfds);
 		FD_SET(c_sfd,&rfds);
