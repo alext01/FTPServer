@@ -23,7 +23,7 @@ int session(int c_sfd) {   //queue cmd_queue_ptr will need to be sent too
 	pthread_attr_init(&attr);
 	char commandstr[CMD_STRLEN];
 	struct timeval timeout;
-	fd_set rfds, wfds;
+	fd_set rfds;
 
 	//init sessioninfo
 	sessioninfo.c_sfd = c_sfd;
@@ -33,8 +33,9 @@ int session(int c_sfd) {   //queue cmd_queue_ptr will need to be sent too
 	sessioninfo.logged_in = false;
 	sessioninfo.cmd_complete = false;
 	sessioninfo.user[0] = '\0';
-	sessioninfo.cwd[0] = '\0';
 	sessioninfo.cmd_string[0] = '\0';
+	strcpy(sessioninfo.cwd,"\\");
+
 
 
 	//check if the server is shutting down or if the quit cmd was given
