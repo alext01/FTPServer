@@ -1,6 +1,8 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <sys/select.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <string.h>
 #include "session.h"
 #include "queue.h"
@@ -87,7 +89,7 @@ void readCmd(char *str,int sock, session_info_t *si) {
 
 	//keep adding rxed chars to str until \n rxed
 	while (1) {
-		rt = recv(sock,str+len,1,NULL);
+		rt = recv(sock,str+len,1,0);
 		if (rt > 0) {
 			len += rt;
 			if (str[len] == '\n') {
