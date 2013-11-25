@@ -84,13 +84,15 @@ void readCmd(char *str,int sock, sessioninfo_t *si) {
 	int rt = 0;
 	int len = 0;
 
-
+	//keep adding rxed chars to str until \n rxed
 	while (1) {
 		rt = recv(sock,str+len,1,NULL);
 		if (rt > 0) {
 			len += rt;
-			if (str[len] == '\n')
-				return;
+			if (str[len] == '\n') {
+				str[len+1] =='\0'; //null terminate string
+			}
+
 		}
 		else if (rt == 0) {
 			si->cmd_abort = true;
