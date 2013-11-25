@@ -27,7 +27,7 @@
 #define _CMD_SWITCH_H_
 
 
-void command_switch(const char *cmdLine);
+void command_switch(void*);
 
 
 //END macro guard '_CMD_SWITCH_H_'

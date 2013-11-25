@@ -32,15 +32,22 @@
 //Header File References
 #include "cmd_switch.h"
 #include "cmd_line_parser.h"
+#include "session.h"
 
 #define MIN_ARGS 1
 
-void command_switch(const char *cmdLine)
+void command_switch(void * arg)
 { //BEGIN function 'command_switch'
 
+  session_info_t *si = (session_info_t*)arg;
   int numArgs;
+
   char *cmd,
        *arg;
+
+  char *cmd;
+  char *cmdLine = si->cmd_string;
+
 
   numArgs = command_arg_count(cmdLine);
 

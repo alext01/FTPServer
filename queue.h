@@ -1,6 +1,8 @@
 #ifndef __QUEUE_H__
 #define __QUEUE_H__
 
+
+
 typedef struct node {
 	char cmd[4096];
 	struct node *next;
@@ -37,6 +39,7 @@ queue* addToQueue(char *commandstr, queue *cmd_queue_ptr);
 queue* pullFromQueue(char *commandstr, queue *cmd_queue_ptr);
 
 void freeQueue(queue *cmd_queue_ptr);
+
 
 
 #endif //__QUEUE_H__

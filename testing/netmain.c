@@ -39,7 +39,8 @@ int main (int argc, char *argv[])
   int ch;
 
   //Get the interface from the config file.
-  if ((interface = get_config_value ((const char *)setting)) == NULL)
+  if ((interface = get_config_value (setting,
+				     FTP_CONFIG_FILE)) == NULL)
     return -1;
 
   //Get the IPv4 address for the interface specified in the config file.

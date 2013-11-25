@@ -61,7 +61,7 @@ static int server_info (void)
 
   //Get the chosen interface from the server configuration file.
   if ((interface = get_config_value ("INTERFACE_CONFIG",
-				     NET_CONFIG_FILE)) == NULL)
+				     FTP_CONFIG_FILE)) == NULL)
     return -1;
 
   //Get the IPv4 address for the interface.
@@ -73,7 +73,7 @@ static int server_info (void)
 
   //Get the chosen port from the server configuration file.
   if ((port = get_config_value ("DEFAULT_PORT_CONFIG",
-				NET_CONFIG_FILE)) == NULL)
+				FTP_CONFIG_FILE)) == NULL)
     return -1;
 
   //Print the results to the console.
