@@ -24,9 +24,21 @@ queue* addToQueue(char *commandstr, queue *cmd_queue_ptr) {
 }
 
 queue* pullFromQueue(char *commandstr, queue *cmd_queue_ptr) {
-	queue *tempptr = cmd_queue_ptr;
-	strcpy(commandstr, cmd_queue_ptr->cmd);
+	if (cmd_queue_ptr) {
+		queue *tempptr = cmd_queue_ptr->next;
+		strcpy(commandstr, cmd_queue_ptr->cmd);
+		free(cmd_queue_ptr);
+		return tempptr;
+	}
+	else
+		return NULL;
 
+}
 
+void freeQueue(queue *cmd_queue_ptr) {
+	if (cmd_queue_ptr->next)
+		freeQueue(cmd_queue_ptr->next);
+	free(cmd_queue_ptr);
+	return;
 }
 

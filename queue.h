@@ -36,4 +36,7 @@ queue* addToQueue(char *commandstr, queue *cmd_queue_ptr);
 
 queue* pullFromQueue(char *commandstr, queue *cmd_queue_ptr);
 
+void freeQueue(queue *cmd_queue_ptr);
+
+
 #endif //__QUEUE_H__
