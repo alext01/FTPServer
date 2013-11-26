@@ -24,8 +24,8 @@
 
 //=============================================================================
 // Code Citation(s):
-//
-//
+//     * http://www.cplusplus.com/reference/
+//     * http://www.stackoverflow.com/
 //=============================================================================
 
 
@@ -34,7 +34,7 @@
 #define _CMD_SWITCH_H_
 
 
-void command_switch(void*);
+void *command_switch(void*);
 
 
 //END macro guard '_CMD_SWITCH_H_'

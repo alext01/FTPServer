@@ -23,8 +23,8 @@
 
 //=============================================================================
 // Code Citation(s):
-//
-//
+//     * http://www.cplusplus.com/reference/
+//     * http://www.stackoverflow.com/
 //=============================================================================
 
 
@@ -86,7 +86,9 @@ char *command_extract_arg(const char *cmdString)
     return NULL;
   } //END statement 'if'
   trim_whitespace(argString);
-  argString = (char *)realloc(argString, ((strlen(argString) + 1) * sizeof(char)));
+  if ((argString = (char *)realloc(argString, ((strlen(argString) + 1) * sizeof(char)))) == NULL) {
+    return NULL;
+  } //END statement 'if'
 
   free(command);
   free(tempString);
@@ -108,11 +110,11 @@ char *command_extract_cmd(const char *cmdString)
        *token;
 
   tempString = strdup(cmdString);
-  if ((command = (char *)calloc(strlen(cmdString), sizeof(char))) == NULL) {
+  if ((command = (char *)calloc(strlen(tempString), sizeof(char))) == NULL) {
     return NULL;
   } //END statement 'if'
   token = strtok(tempString, " ");
-  if ((command = (char *)realloc(command, strlen(token + 1))) == NULL) {
+  if ((command = (char *)realloc(command, ((strlen(token) + 1) * sizeof(char)))) == NULL) {
     return NULL;
   } //END statement 'if'
   strcpy(command, token);

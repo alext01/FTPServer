@@ -131,7 +131,7 @@ int get_control_sock (void)
 /******************************************************************************
  * accept_connection - see net.h
  *****************************************************************************/
-int accept_connection (int listen_sfd, int mode, bool *quit)
+int accept_connection (int listen_sfd, int mode, session_info_t *si)
 {
   fd_set rfds;       //select() read file descriptor set.
   int stdin_fd;      //store the fileno of stdin.
@@ -192,7 +192,7 @@ int accept_connection (int listen_sfd, int mode, bool *quit)
     }
 
     //Return to exit the thread when session() requests the thread to terminate.
-    if ((quit != NULL) && (*quit == true)) {
+    if ((mode == ACCEPT_PASV) && (si->cmd_abort == true)) {
       close (listen_sfd);
       return -1;
     }
@@ -293,7 +293,7 @@ int cmd_pasv (session_info_t *session, char *cmd_str)
   //Accept a connection from the client on the data connection socket.
   if ((session->d_sfd = accept_connection (session->d_sfd,
 					   ACCEPT_PASV,
-					   &session->cmd_quit)) == -1) {
+					   session)) == -1) {
     close (session->d_sfd);
     session->d_sfd = 0;
     return -1;
@@ -547,7 +547,6 @@ int get_port_address (int c_sfd,
       //Only one non-digit character may appear in one continuous sequence.
       if (char_counter == 1) {
 	fprintf (stderr, "%s: illegal character in argument\n", __FUNCTION__);
-	fprintf (stderr, "character = %c\n", cmd_str[i]);
 	send_mesg_501 (c_sfd);
 	return -1;
       }
@@ -557,7 +556,7 @@ int get_port_address (int c_sfd,
 	//The argument string must begin with an integer.
 	fprintf (stderr, "%s: illegal character in argument\n", __FUNCTION__);
 	send_mesg_501 (c_sfd);
-      } else if (h_index < 5) {
+      } else if (h_index < 6) {
 	//Only a comma may seperate each byte field.
 	if (cmd_str[i] != ',') {
 	  fprintf (stderr, "%s: illegal character in argument\n", __FUNCTION__);

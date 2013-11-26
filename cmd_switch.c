@@ -24,8 +24,8 @@
 
 //=============================================================================
 // Code Citation(s):
-//
-//
+//     * http://www.cplusplus.com/reference/
+//     * http://www.stackoverflow.com/
 //=============================================================================
 
 
@@ -54,7 +54,7 @@
 // Brief Description:
 //     
 //=============================================================================
-void command_switch(void *param)
+void *command_switch(void *param)
 { //BEGIN function 'command_switch'
 
   int numArgs;
@@ -109,16 +109,16 @@ void command_switch(void *param)
       /* PORT <SP> <host-port> <CRLF> */
       } else if (strcmp(cmd, "PORT") == 0) {
 
-	cmd_port(si, arg);
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	cmd_port(si, arg);
 
       /* PASV <CRLF> */
       } else if (strcmp(cmd, "PASV") == 0) {
 
-	cmd_pasv(si, arg);
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	cmd_pasv(si, arg);
 
       /* TYPE <SP> <type-code> <CRLF> */
       } else if (strcmp(cmd, "TYPE") == 0) {
@@ -256,7 +256,8 @@ void command_switch(void *param)
 
       } else {
 
-	printf("ERROR: Command does not exist!\n");
+	printf("ERROR: Command <%s> Unknown!\n", cmd);
+	printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
 
       } //END statement 'if-else'
 
@@ -294,11 +295,15 @@ void command_switch(void *param)
 
       } else {
 
-	printf("ERROR: Command does not exist!\n");
+	printf("ERROR: Command <%s> Unknown!\n", cmd);
+	printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
 
       } //END statement 'if-else'
 
     } //END statement 'if-else'
+
+    free(cmd);
+    free(arg);
 
     //=========================================================================
     //                             END SECOND BLOCK
@@ -306,12 +311,12 @@ void command_switch(void *param)
 
   } else {
 
-    printf("ERROR: Incorrect Command/Insufficient Arguments!\n");
+    printf("ERROR: Missing Command/Insufficient Arguments!\n");
+    printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
 
   } //END statement 'if-else'
 
-  free(cmd);
-  free(arg);
   si->cmd_complete = true;
+  return NULL;
 
 } //END function 'command_switch'
