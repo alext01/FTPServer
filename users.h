@@ -13,7 +13,7 @@
  *
  * Original author: Justin Slind
  *****************************************************************************/
-void cmd_user(char *cmd, session_info_t *si);
+void cmd_user(session_info_t *si,char *cmd);
 
 
 /******************************************************************************
@@ -28,7 +28,7 @@ void cmd_user(char *cmd, session_info_t *si);
  *
  * Original author: Justin Slind
  *****************************************************************************/
-void cmd_pass(char *cmd, session_info_t *si);
+void cmd_pass(session_info_t *si,char *cmd);
 
 
 #endif //__USERS_H__

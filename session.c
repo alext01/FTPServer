@@ -110,7 +110,7 @@ void readCmd(char *str, int sock, session_info_t *si) {
 			len += rt;
 			if (str[len-1] == '\n') {
 
-				str[len+1] = '\0'; //null terminate string
+				str[len-1] = '\0'; //null terminate string
 				return;
 			}
 
