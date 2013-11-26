@@ -90,8 +90,9 @@ int get_control_sock (void);
  *
  *        mode - Modify the actions performed by this function. See modes above.
  *
- *        quit - If a command thread is running this function, this value will
- *               be checked periodically while accepting a connection. If the
+ *        si   - A pointer to the session information. If a command thread is
+ *               running this function, the variable cmd_quit will be 
+ *               checked periodically while accepting a connection. If the
  *               thread creator wishes the thread to terminate, the thread
  *               creator will modify this value.
  *
@@ -111,7 +112,7 @@ int get_control_sock (void);
  *
  * Original author: Evan Myers
  *****************************************************************************/
-int accept_connection (int sfd, int mode, bool *quit);
+int accept_connection (int sfd, int mode, session_info_t *si);
 
 
 /******************************************************************************

@@ -10,10 +10,10 @@ CFLAGS=-g -pedantic -pthread -std=c99 -Wall -D_BSD_SOURCE -D_POSIX_C_SOURCE=2001
 LDFLAGS=-pthread
 
 #main program
-main: config.o controlthread.o main.o net.o response.o servercmd.o session.o queue.o cmd_switch.o cmd_line_parser.o
+main: config.o cmd_line_parser.o cmd_switch.o controlthread.o main.o net.o response.o servercmd.o session.o queue.o 
 
 cmd_line_parser.o: cmd_line_parser.c cmd_line_parser.h
-cmd_switch.o: cmd_switch.c cmd_switch.h cmd_line_parser.h
+cmd_switch.o: cmd_switch.c cmd_switch.h cmd_line_parser.h net.h session.h
 config.o: config.c config.h
 controlthread.o: controlthread.c controlthread.h session.h
 main.o: main.c controlthread.h net.h servercmd.h
