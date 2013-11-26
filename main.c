@@ -130,7 +130,8 @@ int main (int argc, char *argv[])
   while (active_control_threads > 0) {
     sleep (1);
   }
-
+  pthread_attr_destroy(&attr);
+  sleep(2);
   printf ("All threads have terminated, exiting the program.\n");
   return 0;
 }

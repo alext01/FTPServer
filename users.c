@@ -12,7 +12,7 @@ void cmd_user(session_info_t *si,char *arg) {
 
 		char *loggedin = "230 Login successful.\n";
 		send_all(si->c_sfd, (uint8_t*)loggedin, strlen(loggedin));
-	} else if (strlen(arg) > 1) {
+	} else if (arg != NULL) {
 		char *needpass = "331 User name okay, need password.\n";
 		send_all(si->c_sfd, (uint8_t*)needpass, strlen(needpass));
 	}

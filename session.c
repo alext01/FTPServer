@@ -37,7 +37,9 @@ int session(int c_sfd) {
 	sessioninfo.cmd_complete = false;
 	sessioninfo.user[0] = '\0';
 	sessioninfo.cmd_string[0] = '\0';
-	strcpy(sessioninfo.cwd,"\\");   //TEMPORARY COMMENT: <----------- Typo? Unix == '/'
+	strcpy(sessioninfo.cwd,"/");
+
+	commandstr[0] = '\0';
 
 
 
@@ -59,8 +61,8 @@ int session(int c_sfd) {
 		}
 
 		//Do not proceed on timeout.
-		if (nready == 0)
-		        continue;
+		//if (nready == 0)
+		       // continue;
 
 		//if there's anything to read on the control socket, do so.
 		if (FD_ISSET(c_sfd, &rfds)) {
@@ -89,6 +91,7 @@ int session(int c_sfd) {
 			}
 
 			strcpy(sessioninfo.cmd_string,commandstr);
+			commandstr[0] = '\0';
 			printf("Creating Command Thread\n");
 			if (pthread_create(&command_thread, &attr, &command_switch, (void*) &sessioninfo) == -1) {
 			        fprintf (stderr, "%s: pthread_create: %s\n", __FUNCTION__, strerror (errno));
@@ -131,6 +134,7 @@ int session(int c_sfd) {
 
 	printf("session finished\n");
 	freeQueue(cmd_queue_ptr);
+	pthread_attr_destroy(&attr);
 	return 0;
 
 }
