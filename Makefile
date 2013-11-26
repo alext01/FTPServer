@@ -12,6 +12,8 @@ LDFLAGS=-pthread
 #main program
 main: config.o controlthread.o main.o net.o response.o servercmd.o session.o queue.o cmd_switch.o cmd_line_parser.o
 
+cmd_line_parser.o: cmd_line_parser.c cmd_line_parser.h
+cmd_switch.o: cmd_switch.c cmd_switch.h cmd_line_parser.h
 config.o: config.c config.h
 controlthread.o: controlthread.c controlthread.h session.h
 main.o: main.c controlthread.h net.h servercmd.h
@@ -20,10 +22,8 @@ response.o: response.c net.h response.h
 servercmd.o: servercmd.c config.h net.h servercmd.h
 session.o: session.c session.h queue.h
 queue.o: queue.h queue.c
-cmd_switch.o: cmd_switch.c cmd_switch.h cmd_line_parser.h
-cmd_line_parser.o: cmd_line_parser.c cmd_line_parser.h
 
 #Clean up the repository.
 .PHONY: clean
 clean:
-	$(RM) main config.o controlthread.o main.o net.o response.o servercmd.o queue.o session.o cmd_switch.o cmd_line_parser.o
+	$(RM) main cmd_line_parser.o cmd_switch.o config.o controlthread.o main.o net.o response.o servercmd.o session.o queue.o

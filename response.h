@@ -95,4 +95,22 @@ int send_mesg_500 (int c_sfd);
 int send_mesg_501 (int c_sfd);
 
 
+/******************************************************************************
+ * This function generates a negative response message for when the client has
+ * entered a command which requires the client to be logged in, but this
+ * requirement has not been met.
+ *
+ * Arguments:
+ *   c_sfd - The file descriptor of the control connection socket. The response
+ *           message will be sent to this socket.
+ *
+ * Return values:
+ *   0    The message was successfuly sent to the socket.
+ *  -1    The entire message was not sent to the socket.
+ *
+ * Original author: Evan Myers
+ *****************************************************************************/
+int send_mesg_530 (int c_sfd);
+
+
 #endif //__RESPONSE_H__
