@@ -32,14 +32,14 @@
 
 
 
-//C Library References
+//C Library Reference(s)
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 
-//Header File References
+//Header File Reference(s)
 #include "cmd_string_parser.h"
 #include "cmd_switch.h"
 #include "net.h"
@@ -47,10 +47,10 @@
 #include "users.h"
 
 
-//Proprocessor Macro Defines
-#define MIN_NUM_ARGS 1    //The minimum allowed number of arguments
-#define MAX_CMD_SIZE 4    //The maximum allowed length of a command
-#define MIN_CMD_SIZE 3    //The minimum allowed length of a command
+//Preprocessor Macro Define(s)
+#define MIN_NUM_ARGS 1    //Minimum allowed number of arguments
+#define MAX_CMD_SIZE 4    //Maximum allowed length of a command
+#define MIN_CMD_SIZE 3    //Minimum allowed length of a command
 
 
 
@@ -102,6 +102,9 @@ void *command_switch(void *param)
 
     cmd = command_extract_cmd(cmdLine);
     arg = command_extract_arg(cmdLine);
+
+    //Debug Print
+    printf("Return value of 'cmd' <%s> and 'arg' <%s>\n", cmd, arg);
 
     //=========================================================================
     // Brief Description:

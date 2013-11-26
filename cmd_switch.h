@@ -28,7 +28,7 @@
 #define _CMD_SWITCH_H_
 
 
-void *command_switch(void *);
+void *command_switch(void *param);
 
 
 //END macro guard '_CMD_SWITCH_H_'

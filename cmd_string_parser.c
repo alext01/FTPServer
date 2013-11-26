@@ -27,14 +27,18 @@
 
 
 
-//C Library References
+//C Library Reference(s)
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
 
-//Header File References
+//Header File Reference(s)
 #include "cmd_string_parser.h"
+
+
+//Preprocessor Macro Define(s)
+#define MIN_NUM_ARGS 2    //Minimum allowed number of arguments for command_extract_arg()
 
 
 
@@ -88,6 +92,9 @@ int command_arg_count(const char *cmdString)
 //     
 //=============================================================================
 // List of Variables:
+//   {argCount}
+//     > Type integer
+//     > Maintains count of the number of arguments within the given string
 //   {argString}
 //     > Type character pointer
 //     > 
@@ -105,26 +112,35 @@ int command_arg_count(const char *cmdString)
 char *command_extract_arg(const char *cmdString)
 { //BEGIN function 'command_extract_arg'
 
+  int argCount;
+
   char *argString, 
        *command,
        *tempString;
 
+  argCount = command_arg_count(cmdString);
+
+  if (argCount < MIN_NUM_ARGS) {
+    return NULL;
+  } //END statement 'if'
+
   tempString = strdup(cmdString);
 
   if ((argString = (char *)calloc((strlen(tempString) + 1), sizeof(char))) == NULL) {
+    free(tempString);
     return NULL;
   } //END statement 'if'
 
   command = command_extract_cmd(cmdString);
   memcpy(argString, (tempString + strlen(command)), ((strlen(tempString) - strlen(command)) * sizeof(char)));
-
+  /*
   if (strlen(argString) == 0) {
-    free (command);
-    free (argString);
-    free (tempString);
+    free(command);
+    free(argString);
+    free(tempString);
     return NULL;
   } //END statement 'if'
-
+  */
   trim_whitespace(argString);
 
   if ((argString = (char *)realloc(argString, ((strlen(argString) + 1) * sizeof(char)))) == NULL) {
@@ -175,12 +191,14 @@ char *command_extract_cmd(const char *cmdString)
   tempString = strdup(cmdString);
 
   if ((command = (char *)calloc(strlen(tempString), sizeof(char))) == NULL) {
+    free(tempString);
     return NULL;
   } //END statement 'if'
 
   token = strtok(tempString, " ");
 
   if ((command = (char *)realloc(command, ((strlen(token) + 1) * sizeof(char)))) == NULL) {
+    free(tempString);
     return NULL;
   } //END statement 'if'
 
