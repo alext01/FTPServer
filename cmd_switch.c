@@ -22,6 +22,13 @@
 //=============================================================================
 
 
+//=============================================================================
+// Code Citation(s):
+//
+//
+//=============================================================================
+
+
 //C Library References
 #include <ctype.h>
 #include <stdio.h>
@@ -32,8 +39,8 @@
 //Header File References
 #include "cmd_line_parser.h"
 #include "cmd_switch.h"
-#include "session.h"
 #include "net.h"
+#include "session.h"
 
 
 //Proprocessor Macro Defines
@@ -74,154 +81,178 @@ void command_switch(void *param)
     //=========================================================================
     //                            BEGIN FIRST BLOCK
     //=========================================================================
+
     if (strlen(cmd) == MAX_CMD_SIZE) {
 
+      //=======================================================================
+      //            MINIMUM IMPLEMENTATION/FREQUENTLY USED COMMANDS
+      //=======================================================================
+
+      /* USER <SP> <username> <CRLF> */
       if (strcmp(cmd, "USER") == 0) {
 
-	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	//Debug Print
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
+      /* PASS <SP> <password> <CRLF> */
       } else if (strcmp(cmd, "PASS") == 0) {
 
-	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	//Debug Print
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
-      } else if (strcmp(cmd, "ACCT") == 0) {
+      /* QUIT <CRLF> */
+      } else if (strcmp(cmd, "QUIT") == 0) {
+
+	//Debug Print
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+      /* PORT <SP> <host-port> <CRLF> */
+      } else if (strcmp(cmd, "PORT") == 0) {
+
+	cmd_port(si, arg);
+	//Debug Print
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+      /* PASV <CRLF> */
+      } else if (strcmp(cmd, "PASV") == 0) {
+
+	cmd_pasv(si, arg);
+	//Debug Print
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+      /* TYPE <SP> <type-code> <CRLF> */
+      } else if (strcmp(cmd, "TYPE") == 0) {
+
+	//Debug Print
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+      /* STRU <SP> <structure-code> <CRLF> */
+      } else if (strcmp(cmd, "STRU") == 0) {
+
+	//Debug Print
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+      /* MODE <SP> <mode-code> <CRLF> */
+      } else if (strcmp(cmd, "MODE") == 0) {
+
+	//Debug Print
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+      /* RETR <SP> <pathname> <CRLF> */
+      } else if (strcmp(cmd, "RETR") == 0) {
+
+	//Debug Print
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+      /* STOR <SP> <pathname> <CRLF> */
+      } else if (strcmp(cmd, "STOR") == 0) {
+
+	//Debug Print
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+      /* LIST [<SP> <pathname>] <CRLF> */
+      } else if (strcmp(cmd, "LIST") == 0) {
+
+	//Debug Print
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+      /* HELP [<SP> <string>] <CRLF> */
+      } else if (strcmp(cmd, "HELP") == 0) {
+
+	//Debug Print
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+      /* NOOP <CRLF> */
+      } else if (strcmp(cmd, "NOOP") == 0) {
+
+	//Debug Print
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+      }
+
+      //=======================================================================
+      //          MINIMUM IMPLEMENTATION/FREQUENTLY USED COMMANDS END
+      //=======================================================================
+      
+      else if (strcmp(cmd, "ACCT") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+        printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "CDUP") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "SMNT") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
-
-      } else if (strcmp(cmd, "QUIT") == 0) {
-
-	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "REIN") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
-
-      } else if (strcmp(cmd, "PORT") == 0) {
-
-	cmd_port(si, arg);
-	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
-
-      } else if (strcmp(cmd, "PASV") == 0) {
-
-	cmd_pasv(si, arg);
-	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
-
-      } else if (strcmp(cmd, "TYPE") == 0) {
-
-	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
-
-      } else if (strcmp(cmd, "STRU") == 0) {
-
-	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
-
-      } else if (strcmp(cmd, "MODE") == 0) {
-
-	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
-
-      } else if (strcmp(cmd, "RETR") == 0) {
-
-	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
-
-      } else if (strcmp(cmd, "STOR") == 0) {
-
-	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "STOU") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "APPE") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "ALLO") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "REST") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "RNFR") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "RNTO") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "ABOR") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "DELE") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
-
-      } else if (strcmp(cmd, "LIST") == 0) {
-
-	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "NLST") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "SITE") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "SYST") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "STAT") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
-
-      } else if (strcmp(cmd, "HELP") == 0) {
-
-	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
-
-      } else if (strcmp(cmd, "NOOP") == 0) {
-
-	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else {
 
@@ -238,27 +269,28 @@ void command_switch(void *param)
     //=========================================================================
     //                            BEGIN SECOND BLOCK
     //=========================================================================
+
     } else if (strlen(cmd) == MIN_CMD_SIZE) {
 
       if (strcmp(cmd, "CWD") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "RMD") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "MKD") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else if (strcmp(cmd, "PWD") == 0) {
 
 	//Test print
-	printf("Invoked Command <%s> with Argument(s) \"%s\"\n", cmd, arg);
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
       } else {
 
@@ -267,6 +299,7 @@ void command_switch(void *param)
       } //END statement 'if-else'
 
     } //END statement 'if-else'
+
     //=========================================================================
     //                             END SECOND BLOCK
     //=========================================================================
