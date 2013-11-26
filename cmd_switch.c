@@ -24,8 +24,8 @@
 
 //=============================================================================
 // Code Citation(s):
-//
-//
+//     * http://www.cplusplus.com/reference/
+//     * http://www.stackoverflow.com/
 //=============================================================================
 
 
@@ -256,7 +256,8 @@ void command_switch(void *param)
 
       } else {
 
-	printf("ERROR: Command does not exist!\n");
+	printf("ERROR: Command <%s> Unknown!\n", cmd);
+	printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdString));
 
       } //END statement 'if-else'
 
@@ -294,11 +295,15 @@ void command_switch(void *param)
 
       } else {
 
-	printf("ERROR: Command does not exist!\n");
+	printf("ERROR: Command <%s> Unknown!\n", cmd);
+	printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdString));
 
       } //END statement 'if-else'
 
     } //END statement 'if-else'
+
+    free(cmd);
+    free(arg);
 
     //=========================================================================
     //                             END SECOND BLOCK
@@ -306,12 +311,11 @@ void command_switch(void *param)
 
   } else {
 
-    printf("ERROR: Incorrect Command/Insufficient Arguments!\n");
+    printf("ERROR: Missing Command/Insufficient Arguments!\n");
+    printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdString));
 
   } //END statement 'if-else'
 
-  free(cmd);
-  free(arg);
   si->cmd_complete = true;
 
 } //END function 'command_switch'

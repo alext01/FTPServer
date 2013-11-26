@@ -16,16 +16,15 @@
 //     cmd_line_parser.h
 //=============================================================================
 // Brief Description:
-//     The following function prototypes perform parsing operations on an
-//     input string that contains an FTP command along with all of its
-//     relevant arguments.
+//     The following functions perform parsing operations on an input string
+//     that contains an FTP command along with all of its relevant arguments.
 //=============================================================================
 
 
 //=============================================================================
 // Code Citation(s):
-//
-//
+//     * http://www.cplusplus.com/reference/
+//     * http://www.stackoverflow.com/
 //=============================================================================
 
 
