@@ -39,7 +39,7 @@ typedef struct {
  * Original author: Justin Slind
  *****************************************************************************/
 
-int session(int c_sfd, queue *cmd_queue_ptr);
+int session(int c_sfd);
 void readCmd(char *str,int sock, session_info_t *si);
 
 #endif //__SESSION_H__

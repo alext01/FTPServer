@@ -1,6 +1,8 @@
 #ifndef __QUEUE_H__
 #define __QUEUE_H__
 
+
+
 typedef struct node {
 	char cmd[4096];
 	struct node *next;
@@ -36,7 +38,20 @@ queue* addToQueue(char *commandstr, queue *cmd_queue_ptr);
 
 queue* pullFromQueue(char *commandstr, queue *cmd_queue_ptr);
 
+/******************************************************************************
+ * frees allocated memory in the queue
+ *
+ * Arguments:
+ *   cmd_queu_ptr - head the queue
+ *
+ * Returns
+ * 	void
+ *
+ * Original author: Justin Slind
+ *****************************************************************************/
+
 void freeQueue(queue *cmd_queue_ptr);
+
 
 
 #endif //__QUEUE_H__

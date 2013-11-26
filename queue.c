@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "queue.h"
@@ -6,6 +7,10 @@
 
 queue* addToQueue(char *commandstr, queue *cmd_queue_ptr) {
 	queue *temp, *newptr = malloc(sizeof(queue));
+	if (!newptr) {
+	      fprintf (stderr, "%s: malloc: could not allocate the required space\n", __FUNCTION__);
+	      return cmd_queue_ptr;
+	    }
 	strcpy(newptr->cmd,commandstr);
 	newptr->next = NULL;
 

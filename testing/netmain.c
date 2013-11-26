@@ -16,9 +16,9 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "config.h"
-#include "net.h"
-#include "fake_session.h"
+#include "../config.h"
+#include "../net.h"
+#include "../session.h"
 
 //Network testing main. Do not confuse this with "main.c" function main().
 //Read the file header.
@@ -36,10 +36,9 @@ int main (int argc, char *argv[])
   char *setting = "INTERFACE_CONFIG";
   char *interface;
 
-  int ch;
-
   //Get the interface from the config file.
-  if ((interface = get_config_value ((const char *)setting)) == NULL)
+  if ((interface = get_config_value (setting,
+				     FTP_CONFIG_FILE)) == NULL)
     return -1;
 
   //Get the IPv4 address for the interface specified in the config file.
@@ -78,33 +77,30 @@ int main (int argc, char *argv[])
 
 
   //Create a data connnection socket.
-  if ((session.d_sfd = cmd_pasv (&session, buf)) == -1) {
+  /*if ((session.d_sfd = cmd_pasv (&session, buf)) == -1) {
     printf ("%s: error while creating data connection\n", argv[0]);
     return -1;
   } else {
     printf ("passive socket connection accepted\n");
-  }
+    } */
 
 
   //Read a message, no guarantee the entire message is read.
-  nread = 0;
+  /*nread = 0;
   if ((nread = recv (session.c_sfd, buf, 80, 0)) == -1) {
     fprintf (stderr, "%s: recv: %s\n", __FUNCTION__, strerror (errno));
     return -1;
   }
   buf[nread] = '\0';
-
+  */
 
 
   //Testing PORT command.
-  if ((session.d_sfd = cmd_port (&session, buf)) == -1) {
+  while ((session.d_sfd = cmd_port (&session, buf)) == -1) {
     fprintf (stderr, "cmd_port: could not create the connection\n");
-  } else {
-    //Mesg tells us if the data connection is reachable.
-    printf ("data connection established. Exiting program...\n");
   }
-
-  while ((ch = getchar()) != 'q');
+  //Mesg tells us if the data connection is reachable.
+  printf ("data connection established. Exiting program...\n");
 
   //Close all sockets before exiting.
   close (c_listen_sfd);

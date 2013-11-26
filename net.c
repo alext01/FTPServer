@@ -46,12 +46,12 @@
  * PORT command error checking constants.
  *****************************************************************************/
 /* The maximum string length of a PORT command (including the arguments).
- * (PORT + space) + (6 three digit fields) + (5 commas) + (newline + null) */
-#define MAX_PORT_STR_LEN (5 + (6*3) + 5 + 2)
+ * (6 three digit fields) + (5 commas) + (null terminator) */
+#define MAX_PORT_STR_LEN ((6*3) + 5 + 1)
 
 /* The minimum string length of a PORT command (includeing the arguments).
  * (PORT + space) + (6 one digit fields) + (5 commas) + (newline + null) */
-#define MIN_PORT_STR_LEN (5 + (6*1) + 5 + 2)
+#define MIN_PORT_STR_LEN ((6*1) + 5 + 1)
 
 //The number of byte values in the PORT command argument. PORT h1,h2,h3,h4,h5,h6
 #define PORT_BYTE_ARGS 6
@@ -98,13 +98,13 @@ int get_control_sock (void)
 
   //Read the config file for the default port.
   if ((port_result = get_config_value (port_setting, 
-				       NET_CONFIG_FILE)) == NULL) {
+				       FTP_CONFIG_FILE)) == NULL) {
     return -1;
   }
 
   //Read the config file to find which interface to use to make the socket.
   if ((interface_result = get_config_value (interface_setting,
-					    NET_CONFIG_FILE)) == NULL) {
+					    FTP_CONFIG_FILE)) == NULL) {
     return -1;
   }
 
@@ -239,9 +239,6 @@ int accept_connection (int listen_sfd, int mode, bool *quit)
  *****************************************************************************/
 int cmd_pasv (session_info_t *session, char *cmd_str)
 {
-  char *expected_str = "PASV\n";  //the only legal cmd_str for this function.
-
-
   //The setting to be searched for in the config file.
   char *interface_setting = "INTERFACE_CONFIG";
   //The value for the setting that was searched for in the config file.
@@ -249,14 +246,11 @@ int cmd_pasv (session_info_t *session, char *cmd_str)
   //The IPv4 address of the configuration file interface.
   char interface_addr[INET_ADDRSTRLEN];
 
-
-  /* Ensure the right command was passed to this function, and that there are no
-   * arguments. */
-  if (strcmp (cmd_str, expected_str) != 0) {
-    send_mesg_500 (session->c_sfd);
+  //Ensure the client has logged in.
+  /*if (!session->logged_in) {
+    send_mesg_530 (session->c_sfd);
     return -1;
-  }
-
+    } */
 
   /* The server "MUST" close the data connection port when:
    * "The port specification is changed by a command from the user".
@@ -267,10 +261,9 @@ int cmd_pasv (session_info_t *session, char *cmd_str)
     session->d_sfd = 0;
   }
 
-
   //Read the config file to find which interface to use to make the socket.
   if ((interface_result = get_config_value (interface_setting,
-					    NET_CONFIG_FILE)) == NULL) {
+					    FTP_CONFIG_FILE)) == NULL) {
     return -1;
   }
 
@@ -444,8 +437,14 @@ int cmd_port (session_info_t *session, char *cmd_str)
   char hostname[INET_ADDRSTRLEN];  //Maximum size of an IPv4 dot notation addr.
   char service[MAX_PORT_STR];
 
+  //Ensure the client has logged in.
+  /*if (!session->logged_in) {
+    send_mesg_530 (session->c_sfd);
+    return -1;
+    } */
+
   /* The server "MUST" close the data connection port when: 
-   *"The port specification is changed by a command from the user".
+   * "The port specification is changed by a command from the user".
    * Source: rfc 959 page 19 */
   if (session->d_sfd > 0) {
     if (close (session->d_sfd) == -1)
@@ -537,36 +536,54 @@ int get_port_address (int c_sfd,
   i = 0;
 
   /* Process all characters in the command string. This includes the command
-   * portion "PORT " and the argument portion "h1,h2,h3,h4,p1,p2\n". */
+   * portion "PORT " and the argument portion "h1,h2,h3,h4,p1,p2\n". Check for
+   * errors in the argument string. */
   while (i < cmd_str_len) {
     /* Enter this block if the current character is not a digit. All characters
      * that are not digits (0-9) will be processed in this block, and the loop
      * will be restarted with the continue statement to process the next
-     * character.  */
+     * character. */
     if ((cmd_str[i] < 48) || (cmd_str[i] > 57)) {
-      /* Only one comma may seperate a byte field in the argument. Keep track
-       * of the number of number of characters between byte fields when in the
-       * argument portion of the command string. */
-      if (h_index > 0) {
-	/* Only a comma may seperate a byte field. A newline is expected as the
-	 * last character in the string, followed by a NULL character. */ 
-	if ((cmd_str[i] != ',')&&(cmd_str[i] != '\n')&&(cmd_str[i] != '\0')) {
-	  printf ("char = %c\ni = %d\n", cmd_str[i], i); 
+      //Only one non-digit character may appear in one continuous sequence.
+      if (char_counter == 1) {
+	fprintf (stderr, "%s: illegal character in argument\n", __FUNCTION__);
+	fprintf (stderr, "character = %c\n", cmd_str[i]);
+	send_mesg_501 (c_sfd);
+	return -1;
+      }
+
+      //Check the expected character locations for the expected characters.
+      if (h_index == 0) {
+	//The argument string must begin with an integer.
+	fprintf (stderr, "%s: illegal character in argument\n", __FUNCTION__);
+	send_mesg_501 (c_sfd);
+      } else if (h_index < 5) {
+	//Only a comma may seperate each byte field.
+	if (cmd_str[i] != ',') {
 	  fprintf (stderr, "%s: illegal character in argument\n", __FUNCTION__);
 	  send_mesg_501 (c_sfd);
-	  return -1;
 	}
-	char_counter++;
+      } else {
+	//The last character must be a null terminator.
+	if (cmd_str[i] != '\0') {
+	  fprintf (stderr, "%s: illegal character in argument\n", __FUNCTION__);
+	  send_mesg_501 (c_sfd);
+	}
       }
+      //Increment counts on every character read.
+      char_counter++;
       i++;
       continue;
     }
-    //All characters that move past this point are digits.
+
+
+    /* Reset the count of continuous non-digit characters. The next character
+     * is part of an integer. */
+    char_counter = 0;
 
     /* When an integer is found, store the integer. See acknowledgement ONE in
      * the file header for the meaning of "SCNu16". */
     if (sscanf (cmd_str + i, "%"SCNu16, &h[h_index]) == -1) {
-      //Check for errors, EINTR is non-fatal so try sscanf again in that case.
       if (errno == EINTR) {
 	i--; //So that the same character will be passed to sscanf()
 	continue;
@@ -603,13 +620,12 @@ int get_port_address (int c_sfd,
     return -1;
   }
 
-  //Store the hostname in IPv4 dot notation. See acknowledgement ONE.
+  //Store the hostname in an IPv4 dot notation string. See acknowledgement ONE.
   sprintf (*address, "%"PRIu16".%"PRIu16".%"PRIu16".%"PRIu16,
 	   h[0], h[1], h[2], h[3]);
 
   /* Multiply the value of the high order port byte by 256, to shift this byte
-   * into the correct position. This essentially shifts the value by 8 bits
-   * for both big and little endian systems. */
+   * into the correct position. Works for big endian and little endian. */
   h[4] = (h[4] * 256);
   //Combine the two port bytes to create one integer.
   port = (h[4] | h[5]);

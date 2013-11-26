@@ -137,3 +137,21 @@ int send_mesg_501 (int c_sfd)
 
   return 0;
 }
+
+
+/******************************************************************************
+ * send_mesg_530 - see response.h
+ *****************************************************************************/
+int send_mesg_530 (int c_sfd)
+{
+  uint8_t mesg[] = "530 Please login with USER and PASS.\n";
+  int mesg_len;
+
+  //Send the complete response message.
+  mesg_len = strlen ((char *)mesg);
+  if (send_all (c_sfd, mesg, mesg_len) == -1) {
+    return -1;
+  }
+
+  return 0;
+}

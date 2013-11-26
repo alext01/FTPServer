@@ -21,8 +21,6 @@
 #include "config.h"
 
 
-//The name of the server configuration file.
-#define CONFIG_FILE "ftp.conf"
 //The maximum length of a line found in the config file.
 #define MAX_CONFIG_LINE 80
 //This character begins a comment line in the configuration file.
@@ -30,20 +28,20 @@
 
 
 //Local function prototypes.
-static char *get_config_path (void);
+static char *get_config_path (const char *filen);
 static char *search_config (const char *target, const char *pathname);
 
 
 /******************************************************************************
  * get_config_value - see config.h
  *****************************************************************************/
-char *get_config_value (const char *config_setting)
+char *get_config_value (const char *config_setting, const char *filen)
 {
   char *config_path = NULL;
   char *result_value;
 
   //Get the filename path to the configuration file.
-  if ((config_path = get_config_path ()) == NULL) {
+  if ((config_path = get_config_path (filen)) == NULL) {
     return NULL;
   }
 
@@ -68,6 +66,8 @@ char *get_config_value (const char *config_setting)
  * The caller function must be sure to free the memory returned by this
  * function.
  *
+ * Arguments:
+ *   filen - return the full pathname for this configuration file.
  *
  * Returns:
  *   A pointer to the absolute pathname string. If NULL is returned, there was
@@ -80,9 +80,8 @@ char *get_config_value (const char *config_setting)
  *   'client_file_setup' in the file 'fileop.c' submitted in his second
  *   assignment.
  *****************************************************************************/
-char *get_config_path (void)
+static char *get_config_path (const char *filen)
 {
-  char *filen = CONFIG_FILE;             //The name of the configuration file.
   int filen_sz, path_sz, abs_path_sz;    //The required string lengths.
   char *path;
 
@@ -140,7 +139,7 @@ char *get_config_path (void)
  *
  * Original author: Evan Myers
  *****************************************************************************/
-char *search_config (const char *target, const char *pathname)
+static char *search_config (const char *target, const char *pathname)
 {
   FILE *fin;                      //Filepointer for the config file.
  
@@ -179,7 +178,7 @@ char *search_config (const char *target, const char *pathname)
   //Determine if the target setting was found or the entire file was read.
   if (strstr (line, target) == NULL) {
     fprintf (stderr, "%s: '%s' setting was not found in file './%s'\n",
-	     __FUNCTION__, target, CONFIG_FILE);
+	     __FUNCTION__, target, pathname);
     return NULL;
   }
 
