@@ -19,7 +19,7 @@ controlthread.o: controlthread.c controlthread.h session.h
 main.o: main.c controlthread.h net.h servercmd.h
 net.o: net.c config.h net.h response.h
 response.o: response.c net.h response.h
-servercmd.o: servercmd.c config.h net.h servercmd.h
+servercmd.o: servercmd.c config.h controlthread.h net.h servercmd.h
 session.o: session.c session.h queue.h
 queue.o: queue.h queue.c
 

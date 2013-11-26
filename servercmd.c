@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "config.h"
+#include "controlthread.h"
 #include "net.h"
 #include "servercmd.h"
 
@@ -94,6 +95,7 @@ static int server_info (void)
 static void print_help (void)
 {
   printf ("The current commands are:\n");
+  printf ("\tclients\n");
   printf ("\thelp\n");
   printf ("\tserverinfo\n");
   printf ("\tshutdown\n");
@@ -114,13 +116,19 @@ int read_server_cmd (void)
 
   if (strcmp (cmd, "help\n") == 0) {
     print_help ();
-    return 0; 
+    return 0;
+ 
   } else if (strcmp (cmd, "serverinfo\n") == 0) {
     if (server_info () == -1)
       return -1;
     return 0;
+
   } else if (strcmp (cmd, "shutdown\n") == 0) {
     return SHUTDOWN_SERVER;
+
+  } else if (strcmp (cmd, "clients\n") == 0) {
+    printf ("Current clients connected: %d\n", get_cthread_count());
+
   } else {
     printf ("Command not recognized, enter \"help\" for a list of commands.\n");
   }
