@@ -26,7 +26,6 @@ int session(int c_sfd) {
 	char commandstr[CMD_STRLEN];
 	struct timeval timeout;
 	fd_set rfds;
-	int nready;        //Store the return value of select() to check for timeout.
 
 	//init sessioninfo
 	sessioninfo.c_sfd = c_sfd;
@@ -52,7 +51,7 @@ int session(int c_sfd) {
 		timeout.tv_usec = USEC_TIMEOUT;
 
 		//read from socket with timeout
-		if ((nready = select(c_sfd+1,&rfds,NULL,NULL,&timeout)) == -1) {
+		if (select(c_sfd+1,&rfds,NULL,NULL,&timeout) == -1) {
 		        if (errno == EINTR)
 		                continue;
 		        fprintf (stderr, "%s: select: %s\n", __FUNCTION__, strerror (errno));
@@ -60,9 +59,6 @@ int session(int c_sfd) {
 		        return -1;
 		}
 
-		//Do not proceed on timeout.
-		//if (nready == 0)
-		       // continue;
 
 		//if there's anything to read on the control socket, do so.
 		if (FD_ISSET(c_sfd, &rfds)) {

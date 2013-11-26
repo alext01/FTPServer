@@ -123,15 +123,17 @@ int main (int argc, char *argv[])
       break;
   }
 
-  //Modify this function when the control thread does more than sleep when created.
   if (active_control_threads > 0)
     printf ("waiting on threads to resolve...\n");
 
+  //Wait for the control threads to shutdown.
   while (active_control_threads > 0) {
     sleep (1);
   }
-  pthread_attr_destroy(&attr);
-  sleep(2);
+  
+  if (pthread_attr_destroy(&attr) == -1)
+    fprintf (stderr, "%s: pthread_attr_destroy: %s\n", __FUNCTION__, strerror (errno));
+
   printf ("All threads have terminated, exiting the program.\n");
   return 0;
 }

@@ -206,7 +206,8 @@ int accept_connection (int listen_sfd, int mode, session_info_t *si)
     /* Return to exit the thread when session() requests the thread to
      * terminate. This check must occur before the timeout check. */
     if ((mode == ACCEPT_PASV) && (si->cmd_abort == true)) {
-      close (listen_sfd);
+      if (close (listen_sfd) == -1)
+	fprintf (stderr, "%s: abort close: %s\n", __FUNCTION__,strerror(errno));
       return -1;
     }
 
@@ -239,7 +240,8 @@ int accept_connection (int listen_sfd, int mode, session_info_t *si)
    * intended to accept only one data connection. After a connection has been
    * accepted, close the listening socket. */
   if (mode == ACCEPT_PASV)
-    close (listen_sfd);
+    if (close (listen_sfd) == -1)
+      fprintf (stderr, "%s: ending close: %s\n", __FUNCTION__, strerror(errno));
 
   return accepted_sfd;  //Return the accepted socket file descriptor.
 }
@@ -266,7 +268,7 @@ int cmd_pasv (session_info_t *session, char *cmd_str)
   /* The server "MUST" close the data connection port when:
    * "The port specification is changed by a command from the user".
    * Source: rfc 959 page 19 */
-  if (session->d_sfd != 0) {
+  if (session->d_sfd > 0) {
     if (close (session->d_sfd) == -1)
       fprintf (stderr, "%s: close: %s\n", __FUNCTION__, strerror (errno));
     session->d_sfd = 0;
@@ -303,7 +305,6 @@ int cmd_pasv (session_info_t *session, char *cmd_str)
   if ((session->d_sfd = accept_connection (session->d_sfd,
 					   ACCEPT_PASV,
 					   session)) == -1) {
-    close (session->d_sfd);
     session->d_sfd = 0;
     return -1;
   }
