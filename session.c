@@ -1,9 +1,11 @@
+#include <errno.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <sys/select.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <string.h>
+#include <unistd.h>
 #include "session.h"
 #include "queue.h"
 #include "cmd_switch.h"
@@ -14,7 +16,7 @@
 
 extern int shutdown_server;
 
-int session(int c_sfd) {   //queue cmd_queue_ptr will need to be sent too
+int session(int c_sfd) {
 
 	queue *cmd_queue_ptr = NULL;
 	pthread_t command_thread = 0;
@@ -24,6 +26,7 @@ int session(int c_sfd) {   //queue cmd_queue_ptr will need to be sent too
 	char commandstr[CMD_STRLEN];
 	struct timeval timeout;
 	fd_set rfds;
+	int nready;        //Store the return value of select() to check for timeout.
 
 	//init sessioninfo
 	sessioninfo.c_sfd = c_sfd;
@@ -34,11 +37,11 @@ int session(int c_sfd) {   //queue cmd_queue_ptr will need to be sent too
 	sessioninfo.cmd_complete = false;
 	sessioninfo.user[0] = '\0';
 	sessioninfo.cmd_string[0] = '\0';
-	strcpy(sessioninfo.cwd,"\\");
+	strcpy(sessioninfo.cwd,"\\");   //TEMPORARY COMMENT: <----------- Typo? Unix == '/'
 
 
 
-	//check if the server is shutting down or if the quit cmd was given
+	//check if the server is shutting down or if the quit cmd was received from the client
 	while (!shutdown_server && !sessioninfo.cmd_quit) {
 
 		FD_ZERO(&rfds);
@@ -46,18 +49,32 @@ int session(int c_sfd) {   //queue cmd_queue_ptr will need to be sent too
 		timeout.tv_sec = 0;
 		timeout.tv_usec = USEC_TIMEOUT;
 
+		//read from socket with timeout
+		if ((nready = select(c_sfd+1,&rfds,NULL,NULL,&timeout)) == -1) {
+		        if (errno == EINTR)
+		                continue;
+		        fprintf (stderr, "%s: select: %s\n", __FUNCTION__, strerror (errno));
+			freeQueue(cmd_queue_ptr);
+		        return -1;
+		}
 
-		select(c_sfd+1,&rfds,NULL,NULL,&timeout);  //read from socket w/ timeout
+		//Do not proceed on timeout.
+		if (nready == 0)
+		        continue;
 
 		//if there's anything to read on the control socket, do so.
 		if (FD_ISSET(c_sfd, &rfds)) {
-			readCmd(commandstr, c_sfd, &sessioninfo);
+		        if (readCmd(commandstr, c_sfd, &sessioninfo) == -1) {
+		               freeQueue(cmd_queue_ptr);
+			       return -1;
+		        }
+
 			printf("rxed: %s\n",commandstr);
 			cmd_queue_ptr = addToQueue(commandstr, cmd_queue_ptr);
 		}
 
-		//if command is ABORT let the current thread know
-		if (strncmp(commandstr,"ABRO",4) == 0) {
+		//if command is abort (ABOR) let the current thread know
+		if (strncmp(commandstr,"ABOR",4) == 0) {
 			printf("Abort was set\n");
 			sessioninfo.cmd_abort = true;
 		}
@@ -73,13 +90,21 @@ int session(int c_sfd) {   //queue cmd_queue_ptr will need to be sent too
 
 			strcpy(sessioninfo.cmd_string,commandstr);
 			printf("Creating Command Thread\n");
-			pthread_create(&command_thread, &attr, &command_switch, (void*) &sessioninfo);
+			if (pthread_create(&command_thread, &attr, &command_switch, (void*) &sessioninfo) == -1) {
+			        fprintf (stderr, "%s: pthread_create: %s\n", __FUNCTION__, strerror (errno));
+				freeQueue(cmd_queue_ptr);
+				return -1;
+			}
 
 		}
 		//check if the command thread is done, if so, join
 		else if (sessioninfo.cmd_complete) {
 			printf("joining thread\n");
-			pthread_join(command_thread,NULL);
+			if (pthread_join(command_thread,NULL) == -1) {
+			        fprintf (stderr, "%s: pthread_join: %s\n", __FUNCTION__, strerror (errno));
+				freeQueue(cmd_queue_ptr);
+			        return -1;
+			}
 			command_thread = 0;
 			sessioninfo.cmd_string[0] = '\0';
 			sessioninfo.cmd_complete = false;
@@ -90,38 +115,57 @@ int session(int c_sfd) {   //queue cmd_queue_ptr will need to be sent too
 	}
 	//if shutdown or quit was given, abort the current thread if running
 	sessioninfo.cmd_abort = true;
-	if (command_thread)
-		pthread_join(command_thread,NULL);
+	if (command_thread) {
+	        if (pthread_join(command_thread,NULL) == -1) {
+	                fprintf (stderr, "%s: pthread_join: %s\n", __FUNCTION__, strerror (errno));
+			freeQueue(cmd_queue_ptr);
+			return -1;
+		}
+	}
+
+	//Close the data connection socket.
+	if (sessioninfo.d_sfd > 0) {
+	        if (close (sessioninfo.d_sfd) == -1)
+	                fprintf (stderr, "%s: close: %s\n", __FUNCTION__, strerror (errno));
+	}
+
 	printf("session finished\n");
 	freeQueue(cmd_queue_ptr);
 	return 0;
 
 }
 
-void readCmd(char *str, int sock, session_info_t *si) {
+
+//Evan: I have changed the void return type to int, so that recv may return error.
+int readCmd(char *str, int sock, session_info_t *si) {
 	int rt = 0;
 	int len = 0;
 
 	//keep adding rxed chars to str until \n rxed
 	while (1) {
-		rt = recv(sock,str+len,1,0);
+	  if ((rt = recv(sock,str+len,1,0)) == -1) {
+	        if (errno == EINTR)
+		        continue;
+		fprintf (stderr, "%s: recv: %s\n", __FUNCTION__, strerror (errno));
+		return -1;
+	  }
 		if (rt > 0) {
 
 			len += rt;
 			if (str[len-1] == '\n') {
 
 				str[len-1] = '\0'; //null terminate string
-				return;
+				break;
 			}
 
 		}
 		else if (rt == 0) {
 			si->cmd_abort = true;
 			si->cmd_quit = true;
-			return;
+			break;
 		}
 
 	}
 
-	return;
+	return len;
 }
