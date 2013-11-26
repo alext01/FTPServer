@@ -9,18 +9,12 @@
 //              Alex Tai
 //              James Yoo
 //=============================================================================
-
-
-//=============================================================================
 // Filename:
-//     cmd_line_parser.h
+//     cmd_string_parser.h
 //=============================================================================
 // Brief Description:
 //     The following functions perform parsing operations on an input string
 //     that contains an FTP command along with all of its relevant arguments.
-//=============================================================================
-
-
 //=============================================================================
 // Code Citation(s):
 //     * http://www.cplusplus.com/reference/
@@ -28,9 +22,9 @@
 //=============================================================================
 
 
-//BEGIN macro guard '_CMD_LINE_PARSER_H_'
-#ifndef _CMD_LINE_PARSER_H_
-#define _CMD_LINE_PARSER_H_
+//BEGIN macro guard '_CMD_STRING_PARSER_H_'
+#ifndef _CMD_STRING_PARSER_H_
+#define _CMD_STRING_PARSER_H_
 
 
 int command_arg_count(const char *cmdString);
@@ -43,5 +37,5 @@ void convert_to_upper(char *string);
 void trim_whitespace(char *string);
 
 
-//END macro guard '_CMD_LINE_PARSER_H_'
+//END macro guard '_CMD_STRING_PARSER_H_'
 #endif
