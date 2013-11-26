@@ -1,6 +1,6 @@
-//=======================================================================
+//=============================================================================
 // Assignment #03 - FTP Server
-//=======================================================================
+//=============================================================================
 // Date:        November 2013
 // Course:      CMPT 361 - Introduction to Networks
 // Instructor:  Dr. Nicholas M. Boers
@@ -8,18 +8,17 @@
 //              Justin Slind
 //              Alex Tai
 //              James Yoo
-//=======================================================================
+//=============================================================================
 
 
-//=======================================================================
+//=============================================================================
 // Filename:
 //     cmd_line_parser.c
-//=======================================================================
+//=============================================================================
 // Brief Description:
-//
-//
-//
-//=======================================================================
+//     The following functions perform parsing operations on an input string
+//     that conatins an FTP command along with all of its relevants arguments.
+//=============================================================================
 
 
 //C Library References
@@ -32,48 +31,11 @@
 #include "cmd_line_parser.h"
 
 
-//
-char *command_extract_cmd(const char *cmdString)
-{ //BEGIN function 'command_extract'
 
-  char *command,
-       *tempString,
-       *token;
-
-  tempString = strdup(cmdString);
-  command = (char *)calloc(strlen(cmdString), sizeof(char));
-  token = strtok(tempString, " ");
-  command = (char *)realloc(command, strlen(token + 1));
-  strcpy(command, token);
-  convert_to_upper(command);
-
-  free(tempString);
-  return command;
-
-} //END function 'command_extract'
-
-
-//
-char *command_extract_arg(const char *cmdString)
-{ //BEGIN function 'command_extract_arg'
-
-  char *argString, 
-       *command;
-
-  argString = (char *)calloc(strlen(cmdString), sizeof(char));
-
-  command = command_extract_cmd(cmdString);
-  memcpy(argString, (cmdString + strlen(command)), ((strlen(cmdString) - strlen(command)) * sizeof(char)));
-  trim_whitespace(argString);
-  argString = (char *)realloc(argString, strlen(argString + 1));
-
-  free(command);
-  return argString;
-
-} //END function 'command_extract_arg'
-
-
-//
+//=============================================================================
+// Brief Description:
+//     
+//=============================================================================
 int command_arg_count(const char *cmdString)
 { //BEGIN function 'command_arg_count'
 
@@ -94,25 +56,78 @@ int command_arg_count(const char *cmdString)
 } //END function 'command_arg_count'
 
 
-//
-void convert_to_upper(char *string)
-{ //BEGIN function 'conver_to_upper'
 
-  for (int i = 0; i < strlen(string); i++) {
-    string[i] = toupper(string[i]);
-  } //END loop 'for'
+//=============================================================================
+// Brief Description:
+//     
+//=============================================================================
+char *command_extract_arg(const char *cmdString)
+{ //BEGIN function 'command_extract_arg'
 
-} //END function 'convert_to_upper'
+  char *argString, 
+       *command,
+       *tempString;
+
+  tempString = strdup(cmdString);
+  if ((argString = (char *)calloc((strlen(tempString) + 1), sizeof(char))) == NULL) {
+    return NULL;
+  } //END statement 'if'
+  command = command_extract_cmd(cmdString);
+
+  memcpy(argString, (tempString + strlen(command)), ((strlen(tempString) - strlen(command)) * sizeof(char)));
+  if (strlen(argString) == 0) {
+    return NULL;
+  } //END statement 'if'
+  trim_whitespace(argString);
+  argString = (char *)realloc(argString, ((strlen(argString1) + 1) * sizeof(char)));
+
+  free(command);
+  free(tempString);
+  return argString;
+
+} //END function 'command_extract_arg'
 
 
-//
+
+//=============================================================================
+// Brief Description:
+//     
+//=============================================================================
+char *command_extract_cmd(const char *cmdString)
+{ //BEGIN function 'command_extract'
+
+  char *command,
+       *tempString,
+       *token;
+
+  tempString = strdup(cmdString);
+  if ((command = (char *)calloc(strlen(cmdString), sizeof(char))) == NULL) {
+    return NULL;
+  } //END statement 'if'
+  token = strtok(tempString, " ");
+  if ((command = (char *)realloc(command, strlen(token + 1))) == NULL) {
+    return NULL;
+  } //END statement 'if'
+  strcpy(command, token);
+  convert_to_upper(command);
+
+  free(tempString);
+  return command;
+
+} //END function 'command_extract'
+
+
+
+//=============================================================================
+// Brief Description:
+//     
+//=============================================================================
 char *strdup(const char *string)
 { //BEGIN function 'strdup'
 
   char *duplicate;
 
-  duplicate = (char *)calloc((strlen(string) + 1), sizeof(char));
-  if (duplicate == NULL) {
+  if ((duplicate = (char *)calloc((strlen(string) + 1), sizeof(char))) == NULL) {
     return NULL;
   } //END statement 'if'
   strcpy(duplicate, string);
@@ -123,7 +138,26 @@ char *strdup(const char *string)
 } //END function 'strdup'
 
 
-//
+
+//=============================================================================
+// Brief Description:
+//     
+//=============================================================================
+void convert_to_upper(char *string)
+{ //BEGIN function 'conver_to_upper'
+
+  for (int i = 0; i < strlen(string); i++) {
+    string[i] = toupper(string[i]);
+  } //END loop 'for'
+
+} //END function 'convert_to_upper'
+
+
+
+//=============================================================================
+// Brief Description:
+//     
+//=============================================================================
 void trim_whitespace(char *string)
 { //BEGIN function 'trim_whitespace'
 
