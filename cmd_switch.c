@@ -17,6 +17,7 @@
 //   > cmd_switch.h
 //   > net.h
 //   > session.h
+//   > users.h
 //=============================================================================
 // Brief Description:
 //
@@ -44,6 +45,7 @@
 #include "net.h"
 #include "session.h"
 #include "users.h"
+
 
 //Proprocessor Macro Defines
 #define MIN_NUM_ARGS 1    //The minimum allowed number of arguments
@@ -117,15 +119,17 @@ void *command_switch(void *param)
 
       /* USER <SP> <username> <CRLF> */
       if (strcmp(cmd, "USER") == 0) {
-    	  cmd_user(si, arg);
+
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	cmd_user(si, arg);
 
       /* PASS <SP> <password> <CRLF> */
       } else if (strcmp(cmd, "PASS") == 0) {
-    	  cmd_pass(si, arg);
+
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	cmd_pass(si, arg);
 
       /* QUIT <CRLF> */
       } else if (strcmp(cmd, "QUIT") == 0) {
