@@ -301,7 +301,7 @@ void *command_switch(void *param)
 
 	//Debug Print
 	printf("ERROR: Command <%s> Unknown!\n", cmd);
-	printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdString));
+	printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
 
       } //END statement 'if-else'
 
@@ -345,7 +345,7 @@ void *command_switch(void *param)
 
 	//Debug Print
 	printf("ERROR: Command <%s> Unknown!\n", cmd);
-	printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdString));
+	printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
 
       } //END statement 'if-else'
 
@@ -357,7 +357,7 @@ void *command_switch(void *param)
 
       //Debug Print
       printf("ERROR: Command <%s> Unknown!\n", cmd);
-      printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdString));
+      printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
 
     } //END statement 'if-else'
 
@@ -368,7 +368,7 @@ void *command_switch(void *param)
 
     //Debug Print
     printf("ERROR: Missing Command/Insufficient Arguments!\n");
-    printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdString));
+    printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
 
   } //END statement 'if-else'
 
