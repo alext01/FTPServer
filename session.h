@@ -37,9 +37,12 @@ typedef struct {
  * 	returns 0 when function is complete
  *
  * Original author: Justin Slind
+ * Checked by: Evan Myers, Nov.26
  *****************************************************************************/
 
 int session(int c_sfd);
-void readCmd(char *str,int sock, session_info_t *si);
+
+//Checked by: Evan Myers, Nov.26
+int readCmd(char *str,int sock, session_info_t *si);
 
 #endif //__SESSION_H__

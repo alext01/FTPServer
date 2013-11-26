@@ -160,38 +160,51 @@ int accept_connection (int listen_sfd, int mode, session_info_t *si)
     timeout_ptr = &timeout;
   }
 
+
+  /* The loop condition will be checked more than once (ie. not be exited by a
+   * break statement) when errno returns with value EINTR, or select() is
+   * passed by timeout. */
   while (1) {
     FD_ZERO (&rfds);
-    //Include stdin for the read set. Server can input commands with this.
     FD_SET (listen_sfd, &rfds);
-    /* If the caller function wishes to check for input from stdin, add stdin
-     * to the select read set. */
+    //allow main() to pass select() when there is a server command.
     if (mode == ACCEPT_CONTROL)
       FD_SET (stdin_fd, &rfds);
 
-
-    /* Set this value in the loop to make linux systems operate the same as
-     * "most others". See 'man 2 select' and search "The timeout". */
+    /* Set this value inside the loop to make linux systems operate the same as
+     * "most others". See 'man (2) select' for more information about the
+     * timeout value. */
     if (mode == ACCEPT_PASV) {
       timeout.tv_sec = 0;
       timeout.tv_usec = USEC_TIMEOUT;
     }
 
 
-    /* The control thread running this function may be asked to terminate by
-     * session() so that the program may exit. Check the this value on
-     * timeout or when passing normally.
+    /* mode: ACCEPT_PASV
+     *    When a control thread  has called this function, the thread may be
+     * requested to terminate by session(). 
      *
-     * The timeout is NULL when the mode argument to this function is equal to
-     * ACCEPT_CONTROL. In this case, there is no timeout. */
-    if ((nready = select (listen_sfd + 1, &rfds, NULL, NULL, timeout_ptr)) == -1) {
+     * session() will send this request by setting cmd_abort to true (found 
+     * in the structure passed as the third argument to this function).
+     *
+     * session() will set cmd_abort to true when requested to terminate by
+     * main().
+     *
+     *
+     * mode: ACCEPT_CONTROL
+     *    When main() uses this function to accept a control connection, the
+     * timeout will not be set, and select() may also be passed by input to
+     * stdin. */
+    if ((nready = select (listen_sfd + 1, &rfds, 
+			  NULL, NULL, timeout_ptr)) == -1) {
       if (errno == EINTR)
 	continue;
       fprintf (stderr, "%s: select: %s\n", __FUNCTION__, strerror (errno));
       return -1;
     }
 
-    //Return to exit the thread when session() requests the thread to terminate.
+    /* Return to exit the thread when session() requests the thread to
+     * terminate. This check must occur before the timeout check. */
     if ((mode == ACCEPT_PASV) && (si->cmd_abort == true)) {
       close (listen_sfd);
       return -1;
@@ -202,7 +215,7 @@ int accept_connection (int listen_sfd, int mode, session_info_t *si)
       continue;
 
     /* Return from the function to read a server command when there is input
-     * in stdin buffer. */
+     * in the stdin buffer. */
     if (mode == ACCEPT_CONTROL) {
       if (FD_ISSET (stdin_fd, &rfds)) {
 	return STDIN_READY;
@@ -212,7 +225,6 @@ int accept_connection (int listen_sfd, int mode, session_info_t *si)
     //Attempt to accept a connection with the named socket.
     if (FD_ISSET (listen_sfd, &rfds)) {
       if ((accepted_sfd = accept (listen_sfd, NULL, NULL)) == -1) {
-	// Retry accept() for this descriptor if a non-fatal error.
 	if (errno == EINTR)
 	  continue;
 
@@ -223,15 +235,14 @@ int accept_connection (int listen_sfd, int mode, session_info_t *si)
     }
   }
 
-  /* A socket that is created with the PASV command can only be accepted once.
-   * After a connection has been accepted, close the socket that was listening
-   * for a connection. */
+  /* In this server implementation, the socket created with the PASV command is
+   * intended to accept only one data connection. After a connection has been
+   * accepted, close the listening socket. */
   if (mode == ACCEPT_PASV)
     close (listen_sfd);
 
   return accepted_sfd;  //Return the accepted socket file descriptor.
 }
-
 
 
 /******************************************************************************
@@ -267,9 +278,8 @@ int cmd_pasv (session_info_t *session, char *cmd_str)
     return -1;
   }
 
-  /* Get the IPv4 address for the interface that was set in the configuration
-   * file. Free the interface retrieved from the config file, it is no longer
-   * required. */
+  /* Get the IPv4 address for the interface specified in the configuration
+   * file. Free the interface string, it is no longer required. */
   if (get_interface_address (interface_result, &interface_addr) == -1) {
     free (interface_result);
     return -1;
@@ -277,8 +287,7 @@ int cmd_pasv (session_info_t *session, char *cmd_str)
   free (interface_result);
 
 
-  /* Create a data connection socket that is ready to accept a connection from
-   * the client. */
+  //Create a socket that will listen for a data connection from a client.
   if ((session->d_sfd = get_pasv_sock (interface_addr, NULL)) == -1) {
     return -1;
   }
@@ -290,7 +299,7 @@ int cmd_pasv (session_info_t *session, char *cmd_str)
     return -1;
   }
  
-  //Accept a connection from the client on the data connection socket.
+  //Accept a connection from the client on the listening socket.
   if ((session->d_sfd = accept_connection (session->d_sfd,
 					   ACCEPT_PASV,
 					   session)) == -1) {
@@ -599,7 +608,7 @@ int get_port_address (int c_sfd,
       return -1;
     }
 
-    //Determine the length of characters the integer is composed of.
+    //Determine how many digits present in the integer.
     if (h[h_index] > 99) {
       i += 3;
     } else if (h[h_index] > 9) {
@@ -642,7 +651,7 @@ int get_port_address (int c_sfd,
  *
  * Arguments:
  *   hostname - The IPv4 address to connect to, represented in a dot notation
- *              string. (eg. "xxx.2.0.13")
+ *              string. (eg. "127.0.1.1")
  *    service - The service (port) to connect to, represented as a string.
  *              (eg. "56035")
  *
@@ -698,13 +707,12 @@ int send_all (int sfd, uint8_t *mesg, int mesg_len)
 
   while (to_send > 0) {
     if ((nsent = send (sfd, mesg, to_send, 0)) == -1) {
-      //handle errors, EINTR is non-fatal
       if (errno == EINTR)
 	continue;
       fprintf (stderr, "%s: %s\n", __FUNCTION__, strerror (errno));
       return -1;
     }
-    //Update the number of bytes to send over the connection.
+    //Update the number of bytes to send to the socket.
     to_send -= nsent;
     nsent = 0;
   }
