@@ -79,7 +79,7 @@ char *command_extract_arg(const char *cmdString)
     return NULL;
   } //END statement 'if'
   trim_whitespace(argString);
-  argString = (char *)realloc(argString, ((strlen(argString1) + 1) * sizeof(char)));
+  argString = (char *)realloc(argString, ((strlen(argString) + 1) * sizeof(char)));
 
   free(command);
   free(tempString);

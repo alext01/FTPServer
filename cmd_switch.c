@@ -33,6 +33,7 @@
 #include "cmd_line_parser.h"
 #include "cmd_switch.h"
 #include "session.h"
+#include "net.h"
 
 
 //Proprocessor Macro Defines
