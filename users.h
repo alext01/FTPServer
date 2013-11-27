@@ -7,11 +7,11 @@
  * Check if username is valid
  *
  * Arguments:
- *   cmd - current command with parameter
  *   si - info for current session
+ *   cmd - current command with parameter
  *
  * Returns
- * 	head of the queue
+ * 	void
  *
  * Original author: Justin Slind
  *****************************************************************************/
@@ -22,11 +22,11 @@ void cmd_user(session_info_t *si,char *cmd);
  * checks if password matches for the previously given user
  *
  * Arguments:
- *   cmd - current command with parameter
  *   si - info for current session
+ *   cmd - current command with parameter
  *
  * Returns
- * 	head of the queue
+ * 	void
  *
  * Original author: Justin Slind
  *****************************************************************************/

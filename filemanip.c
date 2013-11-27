@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <errno.h>
+#include <string.h>
 //#include <ctype.h>
 //#include <unistd.h>
 
@@ -81,7 +82,7 @@ void writeFile(FILE * fp, long int datSZ){
 char * listDirect(char * curloc){
   char * directory;
   DIR *dp;
-  sturct dirent *ep;
+  struct dirent *ep;
 
   dp = opendir(curloc);
 

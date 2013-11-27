@@ -45,6 +45,7 @@
 #include "net.h"
 #include "session.h"
 #include "users.h"
+#include "cmd_stor.h"
 
 
 //Preprocessor Macro Define(s)
@@ -184,7 +185,7 @@ void *command_switch(void *param)
 
       /* STOR <SP> <pathname> <CRLF> */
       } else if (strcmp(cmd, "STOR") == 0) {
-
+    	  cmd_stor(si,cmd);
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
