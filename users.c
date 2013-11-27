@@ -11,6 +11,11 @@
 void cmd_user(session_info_t *si,char *arg) {
 
 	//if user command is given, log current user out
+	if (arg == NULL) {
+		char *noarg = "501 Syntax error in parameters or arguments.\n";
+		send_all(si->c_sfd, (uint8_t*)noarg, strlen(noarg));
+		return;
+	}
 	si->logged_in = false;
 	si->user[0] = '\0';
 
@@ -26,12 +31,7 @@ void cmd_user(session_info_t *si,char *arg) {
 		send_all(si->c_sfd, (uint8_t*)needpass, strlen(needpass));
 	}
 	//as long as argument isn't null, copy the string over
-	if (arg != NULL)
-		strcpy(si->user,arg);
-	else {
-		char *noarg = "501 Syntax error in parameters or arguments.\n";
-		send_all(si->c_sfd, (uint8_t*)noarg, strlen(noarg));
-	}
+	strcpy(si->user,arg);
 	return;
 }
 
@@ -45,29 +45,42 @@ void cmd_pass(session_info_t *si, char *cmd) {
 	if (si->logged_in) {
 		char *loggedin = "230 Already logged in.\n";
 		send_all(si->c_sfd, (uint8_t*)loggedin, strlen(loggedin));
+		return;
 	}
 
 
 	//check if username has been given
 	if (strlen(si->user) > 0) {
-		if ((password = get_config_value(si->user,USER_CONFIG_FILE)) == NULL) {
+		if (cmd){
+			if ((password = get_config_value(si->user,USER_CONFIG_FILE)) == NULL) {
 
-			send_all(si->c_sfd, (uint8_t*)notfound, strlen(notfound));
-		} else {
-
-			//get md5 of password + username
-			getMD5(si->user,cmd,md5string);
-
-			if (strcmp(md5string,password) == 0) {
-
-				char *loggedin = "230 Login successful.\n";
-				si->logged_in = true;
-				send_all(si->c_sfd, (uint8_t*)loggedin, strlen(loggedin));
-			} else {
-				//found name but password didn't match
 				send_all(si->c_sfd, (uint8_t*)notfound, strlen(notfound));
+			} else {
+
+				//get md5 of password + username
+				getMD5(si->user,cmd,md5string);
+
+				if (strcmp(md5string,password) == 0) {
+
+					char *loggedin = "230 Login successful.\n";
+					si->logged_in = true;
+					send_all(si->c_sfd, (uint8_t*)loggedin, strlen(loggedin));
+				} else {
+					//found name but password didn't match
+					send_all(si->c_sfd, (uint8_t*)notfound, strlen(notfound));
+				}
+
+
 			}
+		}else {
+			//no argument was given
+			char *syntaxerror = "501 Syntax error in arguments.\n";
+			send_all(si->c_sfd, (uint8_t*)syntaxerror, strlen(syntaxerror));
+			return;
 		}
+	} else {
+		char *badsequence = "503 Login with USER first.\n";
+		send_all(si->c_sfd, (uint8_t*)badsequence, strlen(badsequence));
 	}
 
 	if (password)
