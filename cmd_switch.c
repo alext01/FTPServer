@@ -104,7 +104,7 @@ void *command_switch(void *param)
     arg = command_extract_arg(cmdLine);
 
     //Debug Print
-    printf("Return value of 'cmd' <%s> and 'arg' <%s>\n", cmd, arg);
+    printf("CHECK: Return value of 'cmd' <%s> and 'arg' \"%s\"\n", cmd, arg);
 
     //=========================================================================
     // Brief Description:
@@ -125,6 +125,8 @@ void *command_switch(void *param)
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+	//Command USER Invoked
 	cmd_user(si, arg);
 
       /* PASS <SP> <password> <CRLF> */
@@ -132,22 +134,30 @@ void *command_switch(void *param)
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+	//Command PASS Invoked
 	cmd_pass(si, arg);
 
       /* QUIT <CRLF> */
       } else if (strcmp(cmd, "QUIT") == 0) {
-    	  char *goodbye = "200 Goodbye.\n";
-    	  send_all(si->c_sfd,(uint8_t*)goodbye,strlen(goodbye));
-    	  si->cmd_quit = true;
+
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+	//Command QUIT Invoked
+	char *goodbye;
+
+	goodbye = "200 Goodbye.\n";
+	send_all(si->c_sfd, (uint8_t*)goodbye, strlen(goodbye));
+	si->cmd_quit = true;
 
       /* PORT <SP> <host-port> <CRLF> */
       } else if (strcmp(cmd, "PORT") == 0) {
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
-	//Call to PORT function
+
+	//Command PORT Invoked
 	cmd_port(si, arg);
 
       /* PASV <CRLF> */
@@ -155,7 +165,8 @@ void *command_switch(void *param)
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
-	//Call to PASV function
+
+	//Command PASV Invoked
 	cmd_pasv(si);
 
       /* TYPE <SP> <type-code> <CRLF> */

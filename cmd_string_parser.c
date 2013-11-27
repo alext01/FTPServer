@@ -133,14 +133,6 @@ char *command_extract_arg(const char *cmdString)
 
   command = command_extract_cmd(cmdString);
   memcpy(argString, (tempString + strlen(command)), ((strlen(tempString) - strlen(command)) * sizeof(char)));
-  /*
-  if (strlen(argString) == 0) {
-    free(command);
-    free(argString);
-    free(tempString);
-    return NULL;
-  } //END statement 'if'
-  */
   trim_whitespace(argString);
 
   if ((argString = (char *)realloc(argString, ((strlen(argString) + 1) * sizeof(char)))) == NULL) {
