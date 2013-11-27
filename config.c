@@ -220,7 +220,7 @@ static char *search_config (const char *target, const char *pathname)
   }
 
   //Allocate memory for the value string.
-  if ((value = malloc (val_length + 1)) == NULL) {
+  if ((value = malloc ((val_length + 1) * sizeof (*value))) == NULL) {
     fprintf (stderr, "%s: malloc: could not allocate the required space\n",
 	     __FUNCTION__);
     return NULL;
@@ -230,6 +230,3 @@ static char *search_config (const char *target, const char *pathname)
 
   return value;
 }
-
-  
-

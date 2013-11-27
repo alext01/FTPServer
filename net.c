@@ -250,7 +250,7 @@ int accept_connection (int listen_sfd, int mode, session_info_t *si)
 /******************************************************************************
  * cmd_pasv - see net.h
  *****************************************************************************/
-int cmd_pasv (session_info_t *session, char *cmd_str)
+int cmd_pasv (session_info_t *session)
 {
   //The setting to be searched for in the config file.
   char *interface_setting = "INTERFACE_CONFIG";

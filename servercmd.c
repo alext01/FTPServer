@@ -127,7 +127,7 @@ int read_server_cmd (void)
     return SHUTDOWN_SERVER;
 
   } else if (strcmp (cmd, "clients\n") == 0) {
-    printf ("Current clients connected: %d\n", get_cthread_count());
+    printf ("Current number of clients: %d\n", get_cthread_count());
 
   } else {
     printf ("Command not recognized, enter \"help\" for a list of commands.\n");

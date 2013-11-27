@@ -70,7 +70,7 @@ int command_arg_count(const char *cmdString)
   argCount = 0;
   for (int i = 0; i < strlen(cmdString); i++) {
     if (!isspace(cmdString[i])) {
-      while (!isspace(cmdString[i])) {
+      while (!isspace(cmdString[i]) && (i < strlen(cmdString))) {
 	i++;
       } //END loop 'while'
       argCount++;

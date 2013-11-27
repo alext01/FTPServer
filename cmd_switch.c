@@ -156,7 +156,7 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 	//Call to PASV function
-	cmd_pasv(si, arg);
+	cmd_pasv(si);
 
       /* TYPE <SP> <type-code> <CRLF> */
       } else if (strcmp(cmd, "TYPE") == 0) {

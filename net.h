@@ -122,12 +122,11 @@ int accept_connection (int sfd, int mode, session_info_t *si);
  * for the INTERFACE_CONFIG setting in the configuration file.
  *
  * Send the address information of the newly created socket to the client over
- * the control connection. The socket that is created will be ready to accept()
- * a connection from the client.
+ * the control connection. This function will accept() a data connection from
+ * the client before returning.
  *
  * Arguments:
  *   session  - A pointer to the session information.
- *   cmd_str  - The string of the pasv command. "PASV\n"
  *
  * Return values:
  *  >0    The socket file descriptor of the data connection socket.
@@ -135,7 +134,7 @@ int accept_connection (int sfd, int mode, session_info_t *si);
  *
  * Original author: Evan Myers
  *****************************************************************************/
-int cmd_pasv (session_info_t *session, char *cmd_str);
+int cmd_pasv (session_info_t *session);
 
 
 /******************************************************************************
