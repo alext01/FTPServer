@@ -137,7 +137,7 @@ void *command_switch(void *param)
 
       /* QUIT <CRLF> */
       } else if (strcmp(cmd, "QUIT") == 0) {
-    	  char *goodbye = "200 Goodbye.\n";
+    	  char *goodbye = "221 Goodbye.\n";
     	  send_all(si->c_sfd,(uint8_t*)goodbye,strlen(goodbye));
     	  si->cmd_quit = true;
 	//Debug Print

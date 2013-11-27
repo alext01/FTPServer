@@ -11,7 +11,7 @@ LDFLAGS	=	-pthread
 
 #main program
 
-main: 	config.o cmdstrparser.o cmdswitch.o controlthread.o main.o md5.o net.o response.o servercmd.o session.o queue.o users.o cmd_stor.o filemanip.o
+main: 	config.o cmdstrparser.o cmdswitch.o controlthread.o main.o md5.o net.o response.o servercmd.o session.o queue.o users.o cmd_stor.o
 
 
 cmdswitch.o: 	cmd_switch.c cmd_switch.h cmd_string_parser.h net.h session.h users.h
@@ -40,7 +40,7 @@ queue.o: queue.h queue.c
 
 users.o: users.c common.h md5.h net.h session.h users.h
 
-cmd_stor.o: cmd_stor.c cmd_stor.h filemanip.h  session.h
+cmd_stor.o: cmd_stor.c cmd_stor.h session.h
 
 filemanip.o: filemanip.c filemanip.h common.h
 
