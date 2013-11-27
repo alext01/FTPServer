@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "config.h"
 #include "controlthread.h"
 #include "net.h"
 #include "servercmd.h"
@@ -34,15 +35,41 @@
  * Global variables which each thread can access and/or modify.
  *****************************************************************************/
 /* One control thread is created for every control connection made with a 
- * client. This counter is modified by main(), and all control threads, so it has
- * been protected from multiple read/writes occuring at the same time by a  mutex. */
+ * client. This counter is modified by main(), and all control threads, so it
+ * has been protected from multiple read/writes occuring at the same time by a
+ *  mutex. */
 pthread_mutex_t control_count_mutex = PTHREAD_MUTEX_INITIALIZER;
 int active_control_threads = 0;
 
+/******************************************************************************
+ * Global variables which should only be read by functions that are not main().
+ *****************************************************************************/
 /* Threads monitor this variable, when main() sets this value to TRUE, all
  * threads will terminate themselves after closing open sockets and freeing
  * heap memory. This variable is only modified by main(). */
 int shutdown_server = false;
+
+/* The root directory of the server. When a new control connection is accepted,
+ * this is the current working directory of the client. The client will not be
+ * able to move to any ancestor directory of this root directory for the
+ * reasons listed below:
+ *
+ *   -The current working directory for each client is stored in two variables
+ *    and merged together when required.
+ *         -The first portion of the cwd is the string stored in the global
+ *          variable below.
+ *         -The second portion of the cwd is found in the session_info_t
+ *          structure that is created for each control connection.
+ *
+ *   -When a client command requires a full pathname, such as when storing or
+ *    retreiving a file, the cwd of the session is appended to the global root
+ *    directory.
+ *
+ *   -Before appending the session cwd to the root cwd, any relative directory
+ *    path entries (eg. '.' and '..') are first resolved, and if this path
+ *    is a directory which is an ancestor to the global root directory, the
+ *    command is not accepted. */
+char *rootdir;
 
 
 /******************************************************************************
@@ -58,6 +85,17 @@ int main (int argc, char *argv[])
   pthread_t thread;    //The handle for a new thread.
   pthread_attr_t attr; //pthread attribute, to set detached state on creation.
   
+  char *root_temp;
+
+  if ((root_temp = get_config_value ("ROOT_PATH_CONFIG", FTP_CONFIG_FILE)) == NULL)
+    return -1;
+
+  if ((rootdir = get_config_path (root_temp)) == NULL) {
+    free (root_temp);
+    return -1;
+  }
+  free (root_temp);
+
   //Initialize the pthread attributes.
   if (pthread_attr_init (&attr) != 0) {
     fprintf (stderr, "%s: pthread_attr_init: %s\n", __FUNCTION__, strerror (errno));
@@ -123,6 +161,10 @@ int main (int argc, char *argv[])
       break;
   }
 
+  printf ("rootdir = %s\n", rootdir);
+
+  free (rootdir);
+
   if (active_control_threads > 0)
     printf ("waiting on threads to resolve...\n");
 
@@ -130,7 +172,7 @@ int main (int argc, char *argv[])
   while (active_control_threads > 0) {
     sleep (1);
   }
-  
+
   if (pthread_attr_destroy(&attr) == -1)
     fprintf (stderr, "%s: pthread_attr_destroy: %s\n", __FUNCTION__, strerror (errno));
 

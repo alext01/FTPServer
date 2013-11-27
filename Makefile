@@ -24,7 +24,7 @@ config.o: config.c config.h
 
 controlthread.o: controlthread.c controlthread.h session.h
 
-main.o: main.c controlthread.h net.h servercmd.h
+main.o: main.c config.h controlthread.h net.h servercmd.h
 
 md5.o: md5.c common.h md5.h
 
@@ -46,4 +46,4 @@ users.o: users.c common.h md5.h net.h session.h users.h
 .PHONY: clean
 clean:
 
-	$(RM) main cmdstrparser.o cmdswitch.o config.o controlthread.o main.o net.o response.o servercmd.o session.o queue.o users.o
+	$(RM) main cmdstrparser.o cmdswitch.o config.o controlthread.o main.o md5.o net.o response.o servercmd.o session.o queue.o users.o

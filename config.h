@@ -47,3 +47,27 @@
  *****************************************************************************/
 char *get_config_value (const char *config_setting, const char *filen);
 
+
+/******************************************************************************
+ * Get the absolute pathname for the configuration file of the server. The
+ * first argument passed to this function will be set to this value on function
+ * return.
+ *
+ * The caller function must be sure to free the memory returned by this
+ * function.
+ *
+ * Arguments:
+ *   filen - return the full pathname for this configuration file.
+ *
+ * Returns:
+ *   A pointer to the absolute pathname string. If NULL is returned, there was
+ *   an error, and the pathname could not be determined.
+ *
+ * Original author: Evan Myers
+ *
+ * Acknowledgements:
+ *   This function is quite similar to the opening portion of Evan's function
+ *   'client_file_setup' in the file 'fileop.c' submitted in his second
+ *   assignment.
+ *****************************************************************************/
+char *get_config_path (const char *filen);

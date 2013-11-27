@@ -260,10 +260,10 @@ int cmd_pasv (session_info_t *session)
   char interface_addr[INET_ADDRSTRLEN];
 
   //Ensure the client has logged in.
-  /*if (!session->logged_in) {
+  if (!session->logged_in) {
     send_mesg_530 (session->c_sfd);
     return -1;
-    } */
+  }
 
   /* The server "MUST" close the data connection port when:
    * "The port specification is changed by a command from the user".
@@ -448,10 +448,10 @@ int cmd_port (session_info_t *session, char *cmd_str)
   char service[MAX_PORT_STR];
 
   //Ensure the client has logged in.
-  /*if (!session->logged_in) {
+  if (!session->logged_in) {
     send_mesg_530 (session->c_sfd);
     return -1;
-    } */
+  }
 
   /* The server "MUST" close the data connection port when: 
    * "The port specification is changed by a command from the user".

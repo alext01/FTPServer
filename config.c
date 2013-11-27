@@ -27,8 +27,7 @@
 #define CONFIG_COMMENT '#'
 
 
-//Local function prototypes.
-static char *get_config_path (const char *filen);
+//Local function prototype.
 static char *search_config (const char *target, const char *pathname);
 
 
@@ -80,7 +79,7 @@ char *get_config_value (const char *config_setting, const char *filen)
  *   'client_file_setup' in the file 'fileop.c' submitted in his second
  *   assignment.
  *****************************************************************************/
-static char *get_config_path (const char *filen)
+char *get_config_path (const char *filen)
 {
   int filen_sz, path_sz, abs_path_sz;    //The required string lengths.
   char *path;
