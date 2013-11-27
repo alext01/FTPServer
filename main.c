@@ -161,8 +161,6 @@ int main (int argc, char *argv[])
       break;
   }
 
-  printf ("rootdir = %s\n", rootdir);
-
   free (rootdir);
 
   if (active_control_threads > 0)
