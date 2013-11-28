@@ -11,10 +11,10 @@ LDFLAGS	=	-pthread
 
 
 #main program
-main:		config.o cmdstrparser.o cmdswitch.o ctrlthread.o main.o md5.o net.o response.o servercmd.o session.o queue.o users.o
+main:		config.o cmdstrparser.o cmdswitch.o ctrlthread.o main.o md5.o net.o path.o response.o servercmd.o session.o queue.o users.o
 
 
-main.o:		main.c config.h controlthread.h net.h servercmd.h
+main.o:		main.c config.h ctrlthread.h net.h servercmd.h
 
 cmdswitch.o:	cmd_switch.c cmd_switch.h cmd_string_parser.h net.h session.h users.h
 		$(CC) $(CFLAGS) -c -o $@ $<
@@ -24,16 +24,18 @@ cmdstrparser.o:	cmd_string_parser.c cmd_string_parser.h
 
 config.o:	config.c config.h
 
-ctrlthread.o:	controlthread.c controlthread.h session.h
+ctrlthread.o:	ctrlthread.c ctrlthread.h session.h
 		$(CC) $(CFLAGS) -c -o $@ $<
 
 md5.o:		md5.c common.h md5.h
 
 net.o:		net.c config.h net.h response.h
 
+path.o:		path.c path.h response.h session.h
+
 response.o:	response.c net.h response.h
 
-servercmd.o:	servercmd.c config.h controlthread.h net.h servercmd.h
+servercmd.o:	servercmd.c config.h ctrlthread.h net.h servercmd.h
 
 session.o:	session.c session.h queue.h
 
@@ -46,4 +48,4 @@ users.o:	users.c common.h md5.h net.h session.h users.h
 .PHONY:		clean
 clean:
 
-		$(RM) main cmdstrparser.o cmdswitch.o config.o ctrlthread.o main.o md5.o net.o response.o servercmd.o session.o queue.o users.o
+		$(RM) main cmdstrparser.o cmdswitch.o config.o ctrlthread.o main.o md5.o net.o path.o response.o servercmd.o session.o queue.o users.o

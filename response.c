@@ -104,6 +104,25 @@ int send_mesg_227 (int c_sfd, int d_sfd)
 
 
 /******************************************************************************
+ * send_mesg_451 - see response.h
+ *****************************************************************************/
+int send_mesg_451 (int c_sfd)
+{
+  uint8_t mesg[] = "451 Requested action aborted. Local error in processing.\n";
+  int mesg_len;
+
+  //Send the complete response message.
+  mesg_len = strlen ((char *)mesg);  
+  if (send_all (c_sfd, mesg, mesg_len) == -1) {
+    return -1;
+  }
+
+
+  return 0;
+}
+
+
+/******************************************************************************
  * send_mesg_500 - see response.h
  *****************************************************************************/
 int send_mesg_500 (int c_sfd)
@@ -155,3 +174,21 @@ int send_mesg_530 (int c_sfd)
 
   return 0;
 }
+
+
+/******************************************************************************
+ * send_mesg_550 - see response.h
+ *****************************************************************************/
+int send_mesg_550 (int c_sfd)
+{
+  uint8_t mesg[] = "550 Requested action not taken. File unavailable.\n";
+  int mesg_len;
+
+  //Send the complete response message.
+  mesg_len = strlen ((char *)mesg);
+  if (send_all (c_sfd, mesg, mesg_len) == -1) {
+    return -1;
+  }
+  return 0;
+}
+

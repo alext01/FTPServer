@@ -35,7 +35,7 @@ int send_welcome_mesg_220 (int c_sfd);
 
 /******************************************************************************
  * This function generates a posotive response message for the PASV command
- * as specified in 'rfc 959'. The code of this message is 227.
+ * as specified in 'rfc 959'.
  *
  * Create the PASV command response message, then send the feedback to the
  * client on the control connection. The response will be sent in the following
@@ -62,8 +62,24 @@ int send_mesg_227 (int c_sfd, int d_sfd);
 
 
 /******************************************************************************
+ * A negative response sent when there was an error in processing.
+ *
+ * Arguments:
+ *   c_sfd - The file descriptor of the control connection socket. The response
+ *           message will be sent to this socket.
+ *
+ * Return values:
+ *    0   The message was successfuly sent to the socket.
+ *   -1   The entire message was not sent to the socket.
+ *
+ * Original author: Evan Myers
+ *****************************************************************************/
+int send_mesg_451 (int c_sfd);
+
+
+/******************************************************************************
  * This function generates a negative response message for when the command
- * was not recognized. The code of this message is 500.
+ * was not recognized.
  *
  * Arguments:
  *   c_sfd - The file descriptor of the control connection socket. The response
@@ -80,7 +96,7 @@ int send_mesg_500 (int c_sfd);
 
 /******************************************************************************
  * This function generates a negative response message for when errors have
- * been detected in the argument of a command. The code of this message is 501.
+ * been detected in the argument of a command.
  *
  * Arguments:
  *   c_sfd - The file descriptor of the control connection socket. The response
@@ -111,6 +127,23 @@ int send_mesg_501 (int c_sfd);
  * Original author: Evan Myers
  *****************************************************************************/
 int send_mesg_530 (int c_sfd);
+
+
+/******************************************************************************
+ * This function generates a negative response message for when a file cannot
+ * be processed due to a lack of permissions.
+ *
+ * Arguments:
+ *   c_sfd - The file descriptor of the control connection socket. The response
+ *           message will be sent to this socket.
+ *
+ * Return values:
+ *   0    The message was successfuly sent to the socket.
+ *  -1    The entire message was not sent to the socket.
+ *
+ * Original author: Evan Myers
+ *****************************************************************************/
+int send_mesg_550 (int c_sfd);
 
 
 #endif //__RESPONSE_H__

@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "config.h"
-#include "controlthread.h"
+#include "ctrlthread.h"
 #include "net.h"
 #include "servercmd.h"
 

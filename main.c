@@ -22,7 +22,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "config.h"
-#include "controlthread.h"
+#include "ctrlthread.h"
 #include "net.h"
 #include "servercmd.h"
 

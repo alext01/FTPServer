@@ -2,7 +2,7 @@
  * Students: Evan Myers, Justin Slind, Alex Tai, James Yoo
  * Course: CMPT-361
  * Assignment #3 - ftp server
- * File: controlthread.c
+ * File: ctrlthread.c
  * Date: November 2013
  *
  * Description:
@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "controlthread.h"
+#include "ctrlthread.h"
 #include "response.h"
 #include "session.h"
 #include <unistd.h>
