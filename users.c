@@ -27,6 +27,10 @@ void cmd_user(session_info_t *si,char *arg) {
 		send_all(si->c_sfd, (uint8_t*)loggedin, strlen(loggedin));
 
 	} else if (arg != NULL) {
+		/* command will take any argument as a valid username in order
+		 * to prevent a malicious client from collecting usernames
+		 * from server.
+		 */
 		char *needpass = "331 User name okay, need password.\n";
 		send_all(si->c_sfd, (uint8_t*)needpass, strlen(needpass));
 	}

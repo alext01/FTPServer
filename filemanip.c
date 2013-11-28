@@ -16,6 +16,10 @@
 #include <errno.h>
 #include <string.h>
 
+//#include <ctype.h>
+//#include <unistd.h>
+
+
 #include "filemanip.h"
 //#include "common.h"
 
@@ -101,7 +105,9 @@ void writeFile(FILE * fp, long int datSZ){
 
 char * listDirect(char * curloc){
   char * directory;
+
   DIR *dp;  //directory pointer
+
   struct dirent *ep;
 
   errno = 0;

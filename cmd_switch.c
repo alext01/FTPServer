@@ -45,6 +45,7 @@
 #include "net.h"
 #include "session.h"
 #include "users.h"
+#include "cmd_stor.h"
 
 
 //Preprocessor Macro Define(s)
@@ -141,15 +142,15 @@ void *command_switch(void *param)
       /* QUIT <CRLF> */
       } else if (strcmp(cmd, "QUIT") == 0) {
 
+
+
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command QUIT Invoked
-	char *goodbye;
-
-	goodbye = "200 Goodbye.\n";
-	send_all(si->c_sfd, (uint8_t*)goodbye, strlen(goodbye));
-	si->cmd_quit = true;
+	  char *goodbye = "221 Goodbye.\n";
+	  send_all(si->c_sfd,(uint8_t*)goodbye,strlen(goodbye));
+	  si->cmd_quit = true;
 
       /* PORT <SP> <host-port> <CRLF> */
       } else if (strcmp(cmd, "PORT") == 0) {
@@ -195,7 +196,7 @@ void *command_switch(void *param)
 
       /* STOR <SP> <pathname> <CRLF> */
       } else if (strcmp(cmd, "STOR") == 0) {
-
+    	  cmd_stor(si,arg);
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 

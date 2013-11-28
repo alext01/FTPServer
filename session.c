@@ -72,9 +72,10 @@ int session(int c_sfd) {
 		}
 
 		//if command is abort (ABOR) let the current thread know
-		if (strncmp(commandstr,"ABOR",4) == 0) {
+		if (strncasecmp(commandstr,"ABOR",4) == 0) {
 			printf("Abort was set\n");
 			sessioninfo.cmd_abort = true;
+			commandstr[0] = '\0';
 		}
 
 
