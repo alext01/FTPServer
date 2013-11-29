@@ -1,13 +1,15 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
+#include <unistd.h>
 #include "cmd_stor.h"
 //#include "filemanip.h"
-#include "session.h"
 #include "net.h"
 #include "path.h"
-#include <unistd.h>
+#include "response.h"
+#include "session.h"
+
 
 void cmd_stor(session_info_t *si, char *cmd) {
 	store(si,cmd,"w");
@@ -56,21 +58,25 @@ void store(session_info_t *si, char *cmd, char *purp) {
 	char *endln = ".\n";
 	send_all(si->c_sfd,(uint8_t*)endln,strlen(endln));
 
+	//Determine if the pathname argument is correct and allowed.
 	if ((pathCheck = check_futer_file(si->cwd, cmd)) == -1) {
-	  send_mesg_451();
+	  send_mesg_451 (si->c_sfd);
 	} else if (pathCheck == -2) {
 	  //improper return code, REDO
-	  send_mesg_553();
+	  send_mesg_553 (si->c_sfd);
 	} else if (pathCheck == -3) {
-	  send_mesg_553();
+	  send_mesg_553 (si->c_sfd);
 	}
 
+	/* Merge all pathname fragments to create a single pathname to use with
+	 * fopen(). */
 	char *fullPath;
 	if ((fullPath = merge_paths(si->cwd, cmd, NULL)) == NULL) {
 	  return;
 	}
 	storfile = fopen(fullPath,purp);
 	free(fullPath);
+
 	while(si->cmd_abort == false && rt != 0) {
 		FD_ZERO(&rfds);
 		FD_SET(si->d_sfd,&rfds);

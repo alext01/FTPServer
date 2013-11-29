@@ -12,6 +12,7 @@ LDFLAGS	=	-pthread
 
 #main program
 
+
 main: 	config.o cmdstrparser.o cmdswitch.o ctrlthread.o main.o md5.o net.o response.o servercmd.o session.o queue.o users.o cmd_stor.o cmd_misc.o cmd_retr.o
 
 
@@ -46,6 +47,8 @@ users.o:	users.c common.h md5.h net.h session.h users.h
 
 cmd_stor.o: 	cmd_stor.c cmd_stor.h net.h path.h session.h
 
+cmd_stor.o: 	cmd_stor.c cmd_stor.h net.h path.h response.h session.h
+
 filemanip.o: 	filemanip.c filemanip.h common.h
 
 cmd_misc.o: 	cmd_misc.c cmd_misc.h net.h session.h
@@ -57,4 +60,4 @@ cmd_retr.o:	cmd_retr.c cmd_retr.h net.h path.h session.h
 #Clean up the repository.
 .PHONY:		clean
 clean:
-		$(RM) main cmdstrparser.o cmdswitch.o config.o ctrlthread.o main.o md5.o net.o path.o response.o servercmd.o session.o queue.o users.o filemanip.o cmd_stor.o cmd_misc.o
+		$(RM) main cmdstrparser.o cmdswitch.o config.o ctrlthread.o main.o md5.o net.o path.o response.o servercmd.o session.o queue.o users.o filemanip.o cmd_stor.o cmd_misc.o cmd_retr.o
