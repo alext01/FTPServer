@@ -14,11 +14,32 @@
 
 
 #include <stdbool.h> //Required for boolean return type in function prototype.
+#include "session.h" //Required for 'session_info_t' in function prototype.
+
+#define CUR_FILE 0    //Determine if this file exists.
+#define CUR_DIR 1     //Determine if this directory exists.
+#define FUTER_FILE 2  //All components of the prefix must be directories.
+/* All components of the prefix must be directories, and the file must not
+ * already exist. */
+#define FUTER_UNIQ 3 
 
 
-#define IS_CUR_NFILE 0   //This normal file should exist.
-#define IS_CUR_DIR 1     //This directory should exist.
-#define IS_FUTER_FILE 2  //All components of the prefix must be directories.
+/******************************************************************************
+ * check_file_exist
+ *****************************************************************************/
+bool check_file_exist (const char *cwd, const char *argpath);
+
+
+/******************************************************************************
+ * check_dir_exist
+ *****************************************************************************/
+bool check_dir_exist (const char *cwd, const char *argpath);
+
+
+/******************************************************************************
+ * check_futer_file
+ *****************************************************************************/
+int check_futer_file (const char *cwd, const char *argpath);
 
 
 /******************************************************************************
@@ -45,7 +66,7 @@
  * action. If it is false, you should abort the current action. This function
  * sends the appropriate code to the control socket.
  *****************************************************************************/
-bool check_legal_path (char *argpath, int mode);
+bool accept_path (session_info_t session, char *argpath, int mode);
 
 
 #endif //__PATH_H__

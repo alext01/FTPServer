@@ -6,7 +6,7 @@
 # Date: November 2013
 ###############################################################################
 CC	=	gcc
-CFLAGS	=	-g -pedantic -pthread -std=c99 -Wall -D_BSD_SOURCE -D_POSIX_C_SOURCE=200112L
+CFLAGS	=	-g -pedantic -pthread -std=c99 -Wall -D_BSD_SOURCE -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE
 LDFLAGS	=	-pthread
 
 
@@ -44,11 +44,11 @@ queue.o:	queue.h queue.c
 
 users.o:	users.c common.h md5.h net.h session.h users.h
 
-cmd_stor.o: cmd_stor.c cmd_stor.h session.h
+cmd_stor.o: 	cmd_stor.c cmd_stor.h session.h
 
-filemanip.o: filemanip.c filemanip.h common.h
+filemanip.o: 	filemanip.c filemanip.h common.h
 
-cmd_misc.o: cmd_misc.c cmd_misc.h net.h session.h
+cmd_misc.o: 	cmd_misc.c cmd_misc.h net.h session.h
 
 
 
