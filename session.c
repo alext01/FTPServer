@@ -9,6 +9,7 @@
 #include "session.h"
 #include "queue.h"
 #include "cmd_switch.h"
+#include "net.h"
 
 #include <stdio.h>
 
@@ -77,6 +78,8 @@ int session(int c_sfd) {
 			printf("Abort was set\n");
 			sessioninfo.cmd_abort = true;
 			commandstr[0] = '\0';
+			char *abort = "226 Abort.\n";
+			send_all(sessioninfo.c_sfd,(uint8_t*)abort,strlen(abort));
 		}
 
 

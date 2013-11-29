@@ -192,3 +192,19 @@ int send_mesg_550 (int c_sfd)
   return 0;
 }
 
+
+/******************************************************************************
+ * send_mesg_553 - see response.h
+ *****************************************************************************/
+int send_mesg_553 (int c_sfd)
+{
+  uint8_t mesg[] = "553 Requested action not taken. File name not allowed.\n";
+  int mesg_len;
+
+  //Send the complete response message.
+  mesg_len = strlen ((char *)mesg);
+  if (send_all (c_sfd, mesg, mesg_len) == -1) {
+    return -1;
+  }
+  return 0;
+}
