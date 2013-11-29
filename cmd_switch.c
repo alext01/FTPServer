@@ -88,19 +88,23 @@
 void *command_switch(void *param)
 { //BEGIN function 'command_switch'
 
+  session_info_t *si;
+
   int numArgs;
 
   char *arg,
        *cmd,
        *cmdLine;
 
-  char *notimplemented = "502 Command not Implemented.\n";
-
-  session_info_t *si;
+  char *cmdUnimplemented,
+       *cmdUnrecognized;
 
   si = (session_info_t *)param;
   cmdLine = si->cmd_string;
   numArgs = command_arg_count(cmdLine);
+
+  cmdUnimplemented = "502 - Command not implemented.\n";
+  cmdUnrecognized = "500 - Syntax error, command unrecognized.\n";
 
   if (numArgs >= MIN_NUM_ARGS) {
 
@@ -145,15 +149,13 @@ void *command_switch(void *param)
       /* QUIT <CRLF> */
       } else if (strcmp(cmd, "QUIT") == 0) {
 
-
-
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command QUIT Invoked
-	  char *goodbye = "221 Goodbye.\n";
-	  send_all(si->c_sfd,(uint8_t*)goodbye,strlen(goodbye));
-	  si->cmd_quit = true;
+	char *goodbye = "221 Goodbye.\n";
+	send_all(si->c_sfd,(uint8_t*)goodbye,strlen(goodbye));
+	si->cmd_quit = true;
 
       /* PORT <SP> <host-port> <CRLF> */
       } else if (strcmp(cmd, "PORT") == 0) {
@@ -178,6 +180,8 @@ void *command_switch(void *param)
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+	//Command TYPE Invoked
 	cmd_type(si, arg);
 
       /* STRU <SP> <structure-code> <CRLF> */
@@ -186,11 +190,15 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+
       /* MODE <SP> <mode-code> <CRLF> */
       } else if (strcmp(cmd, "MODE") == 0) {
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
       /* RETR <SP> <pathname> <CRLF> */
       } else if (strcmp(cmd, "RETR") == 0) {
@@ -198,11 +206,25 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+
       /* STOR <SP> <pathname> <CRLF> */
       } else if (strcmp(cmd, "STOR") == 0) {
-    	  cmd_stor(si,arg);
+
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+	//Command STOR Invoked
+    	cmd_stor(si,arg);
+
+      /* APPE <SP> <pathname> <CRLF> */
+      } else if (strcmp(cmd, "APPE") == 0) {
+
+	//Debug Print
+	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+	//Command APPE Invoked
+	cmd_appe(si,arg);
 
       /* LIST [<SP> <pathname>] <CRLF> */
       } else if (strcmp(cmd, "LIST") == 0) {
@@ -216,11 +238,15 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+
       /* NOOP <CRLF> */
       } else if (strcmp(cmd, "NOOP") == 0) {
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
       //=======================================================================
       //         MINIMUM IMPLEMENTATION/FREQUENTLY USED COMMANDS >END<
@@ -232,11 +258,15 @@ void *command_switch(void *param)
 	//Debug Print
         printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+
       /* CDUP <CRLF> */
       } else if (strcmp(cmd, "CDUP") == 0) {
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
       /* SMNT <SP> <pathname> <CRLF> */
       } else if (strcmp(cmd, "SMNT") == 0) {
@@ -244,11 +274,15 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+
       /* REIN <CRLF> */
       } else if (strcmp(cmd, "REIN") == 0) {
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
       /* STOU <CRLF> */
       } else if (strcmp(cmd, "STOU") == 0) {
@@ -256,12 +290,7 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
-      /* APPE <SP> <pathname> <CRLF> */
-      } else if (strcmp(cmd, "APPE") == 0) {
-
-	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
-		cmd_appe(si,arg);
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
       /* ALLO <SP> <decimal-integer> [<SP> R <SP> <decimal-integer>]<CRLF> */
       } else if (strcmp(cmd, "ALLO") == 0) {
@@ -269,11 +298,15 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+
       /* REST <SP> <marker> <CRLF> */
       } else if (strcmp(cmd, "REST") == 0) {
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
       /* RNFR <SP> <pathname> <CRLF> */
       } else if (strcmp(cmd, "RNFR") == 0) {
@@ -281,11 +314,15 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+
       /* RNTO <SP> <pathname> <CRLF> */
       } else if (strcmp(cmd, "RNTO") == 0) {
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
       /* ABOR <CRLF> */
       } else if (strcmp(cmd, "ABOR") == 0) {
@@ -293,11 +330,15 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+
       /* DELE <SP> <pathname> <CRLF> */
       } else if (strcmp(cmd, "DELE") == 0) {
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
       /* NLIST [<SP> <pathname>] <CRLF> */
       } else if (strcmp(cmd, "NLST") == 0) {
@@ -305,18 +346,23 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+
       /* SITE <SP> <string> <CRLF> */
       } else if (strcmp(cmd, "SITE") == 0) {
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+
       /* SYST <CRLF> */
       } else if (strcmp(cmd, "SYST") == 0) {
 
 	//Debug Print
-    	  printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
-    	  send_all(si->c_sfd,(uint8_t*)notimplemented,strlen(notimplemented));
+    	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
       /* STAT [<SP> <pathname>] <CRLF> */
       } else if (strcmp(cmd, "STAT") == 0) {
@@ -324,13 +370,15 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+
       } else {
 
 	//Debug Print
 	printf("ERROR: Command <%s> Unknown!\n", cmd);
 	printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
-    send_all(si->c_sfd,(uint8_t*)notimplemented,strlen(notimplemented));
 
+	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
       } //END statement 'if-else'
 
@@ -352,11 +400,15 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+
       /* RMD <SP> <pathname> <CRLF> */
       } else if (strcmp(cmd, "RMD") == 0) {
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
       /* MKD <SP> <pathname> <CRLF> */
       } else if (strcmp(cmd, "MKD") == 0) {
@@ -364,24 +416,30 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
+    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+
       /* PWD <CRLF> */
       } else if (strcmp(cmd, "PWD") == 0) {
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
-	char *printstart = "257 \"";
-	char *printend = "\".\n";
-	send_all(si->c_sfd,(uint8_t*)printstart,strlen(printstart));
+	char *printEnd,
+	     *printStart;
+
+	printEnd = "\".\n";
+	printStart = "257 - \"";
+	
+	send_all(si->c_sfd,(uint8_t*)printStart,strlen(printStart));
 	send_all(si->c_sfd,(uint8_t*)si->cwd,strlen(si->cwd));
-	send_all(si->c_sfd,(uint8_t*)printend,strlen(printend));
+	send_all(si->c_sfd,(uint8_t*)printEnd,strlen(printEnd));
 
       } else {
 
 	//Debug Print
 	printf("ERROR: Command <%s> Unknown!\n", cmd);
 	printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
-    send_all(si->c_sfd,(uint8_t*)notimplemented,strlen(notimplemented));
 
+	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
       } //END statement 'if-else'
 
@@ -394,8 +452,8 @@ void *command_switch(void *param)
       //Debug Print
       printf("ERROR: Command <%s> Unknown!\n", cmd);
       printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
-      send_all(si->c_sfd,(uint8_t*)notimplemented,strlen(notimplemented));
 
+      send_all(si->c_sfd, (uint8_t *)cmdUnrecognized, strlen(cmdUnrecognized));
 
     } //END statement 'if-else'
 
