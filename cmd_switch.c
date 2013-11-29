@@ -207,7 +207,7 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
-    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+    	command_retrieve(si, arg);
 
       /* STOR <SP> <pathname> <CRLF> */
       } else if (strcmp(cmd, "STOR") == 0) {
