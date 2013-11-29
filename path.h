@@ -16,36 +16,48 @@
 #include <stdbool.h> //Required for boolean return type in function prototype.
 
 
-#define IS_CUR_NFILE 0   //This normal file should exist.
-#define IS_CUR_DIR 1     //This directory should exist.
-#define IS_FUTER_FILE 2  //All components of the prefix must be directories.
+/******************************************************************************
+ * check_file_exist
+ *
+ * -check if the path is within the scope of the root directory, and that a
+ *  file given in the argument argpath exists.
+ *
+ * Return values:
+ *   true - It is safe to RETR this file.
+ *   false - It is not safe to RETR this file.
+ *****************************************************************************/
+bool check_file_exist (const char *cwd, const char *argpath);
 
 
 /******************************************************************************
- * To be completed later. Quite a lot to be covered.
- *
- * For now this is all thats important to use this function:
- *      -argpath -> put your pathname argument here.
- *
- *      -mode    -> If you want to know if u can make a file or directory with
- *                  this pathname, use IS_FUTER_FILE. eg. STOR or STRU
- *
- *                  If you want to know if the path is a valid directory,
- *                  use IS_CUR_DIR. eg. CWD, NLST, LIST
- *
- *                  If you want to know if this is a file that you can send,
- *                  use IS_CUR_NFILE. eg. RETR
- *
- *
- * This function is not thoroughly tested. The method did return correct
- * results in a slightly shortened version, but I will thoroughly test this
- * tommorow.
- *
- * If this function returns true, it is safe to use the path for the requested
- * action. If it is false, you should abort the current action. This function
- * sends the appropriate code to the control socket.
+ * check_dir_exist
  *****************************************************************************/
-bool check_legal_path (char *argpath, int mode);
+bool check_dir_exist (const char *cwd, const char *argpath);
+
+
+/******************************************************************************
+ * check_futer_file
+ *****************************************************************************/
+int check_futer_file (const char *cwd, char *argpath);
+
+
+/******************************************************************************
+ * merge_paths: updating comments later. 
+ *
+ * ATTENTION: You must free the returned string!
+ *
+ * Arguments:
+ *  cwd - current working directory string.
+ *  argpath - The pathname argument received from the client.
+ *  reserve - Will update this comment. If you have not previously called
+ *            trim_arg_path() on the second argument to this function, reserve
+ *            should be passed NULL.
+ *
+ * Return value:
+ *   NULL - error
+ *   string - The full pathname (rootdir -> cwd -> argument).
+ *****************************************************************************/
+char *merge_paths (const char *cwd, const char *argpath, const int *reserve);
 
 
 #endif //__PATH_H__
