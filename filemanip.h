@@ -102,6 +102,16 @@ char * listDirect(char * curloc);
 
 /*********************************************************
  *
+ * detailList
+ * Argument: char * - filename
+ * Return: void
+ * Description: Display detailed information about files
+ *
+ *********************************************************/
+void detailList(char * filename);
+
+/*********************************************************
+ *
  * changeDirect
  * Argument: char * - current location
  *           char * - changes in location

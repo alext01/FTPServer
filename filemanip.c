@@ -15,17 +15,14 @@
 #include <dirent.h>
 #include <errno.h>
 #include <string.h>
-
-//#include <ctype.h>
-//#include <unistd.h>
-
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "filemanip.h"
-//#include "common.h"
 
 #define MAX_FDATSZ 4096
 
-//extern int verbflg;
 char fileBuff[MAX_FDATSZ];
 
 FILE * openFile(char * fileName, char * path, char * purp){
@@ -105,9 +102,7 @@ void writeFile(FILE * fp, long int datSZ){
 
 char * listDirect(char * curloc){
   char * directory;
-
   DIR *dp;  //directory pointer
-
   struct dirent *ep;
 
   errno = 0;
@@ -118,7 +113,17 @@ char * listDirect(char * curloc){
   }
 
   while( (ep = readdir(dp)) ){
+    if(ep->d_name[0] != '.'){
+      char * pathNfile = malloc(strlen(curloc) + strlen(ep->d_name) + 2);
+      strcpy(pathNfile, curloc);
+      // printf("curloc: %s\n", curloc);
+      strcat(pathNfile, "/");
+      strcat(pathNfile, ep->d_name);
+      // printf("file path: %s\n", pathNfile);
+      printf("File Type: %u\n", ep->d_type);
+      detailList(pathNfile);
       puts(ep->d_name);
+    }
 
     //checks to see if its and error or eof
     if(ep == NULL){
@@ -132,6 +137,21 @@ char * listDirect(char * curloc){
   return directory;
 }
 
+void detailList(char * filepath){
+  struct stat fileStat;
+  int errchk;
+  errno = 0;
+
+  errchk = stat(filepath, &fileStat);
+
+  // Check to see if stat() encountered any error
+  if(errchk == -1){
+    fprintf(stderr, "Error using stat function: %s\n", strerror(errno));
+    return;
+  }
+
+  printf("Mode:                  %lo (octal)\n", (unsigned long) fileStat.st_mode);
+}
 
 char * changeDirect(char * curloc, char * directChanges){
   char newPath[MAX_FDATSZ];
