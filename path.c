@@ -53,7 +53,7 @@ static bool within_rootdir (const char *fullpath);
 static bool is_a_dir (const char *fullpath);
 static int is_unique (const char *fullpath);
 static char *trim_arg_path (char **argpath, int *reserve);
-static void restore_trimmed (char **argpath, char **fullpath, char *trimmed)
+static void restore_trimmed (char **argpath, char **fullpath, char *trimmed);
 
 
 /******************************************************************************
