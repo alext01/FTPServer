@@ -58,12 +58,14 @@ void store(session_info_t *si, char *cmd, char *purp) {
 	 * fopen(). */
 	char *fullPath;
 	if ((fullPath = merge_paths(si->cwd, cmd, NULL)) == NULL) {
-	  send_mesg_553 (si->c_sfd);
+	  send_mesg_450 (si->c_sfd);
 	  return;
 	}
 	if ((storfile = fopen(fullPath,purp)) == NULL) {
 	  fprintf (stderr, "%s: fopen: %s\n", __FUNCTION__, strerror (errno));
 	  free(fullPath);
+	  send_mesg_450 (si->c_sfd);
+	  return;
 	}
 
 	//send positive prelimitary reply
