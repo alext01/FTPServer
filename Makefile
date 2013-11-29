@@ -12,7 +12,7 @@ LDFLAGS	=	-pthread
 
 #main program
 
-main: 	config.o cmdstrparser.o cmdswitch.o controlthread.o main.o md5.o net.o response.o servercmd.o session.o queue.o users.o cmd_stor.o cmd_misc.o
+main: 	config.o cmdstrparser.o cmdswitch.o ctrlthread.o main.o md5.o net.o response.o servercmd.o session.o queue.o users.o cmd_stor.o cmd_misc.o
 
 
 main.o:		main.c config.h ctrlthread.h net.h servercmd.h
