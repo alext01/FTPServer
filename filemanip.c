@@ -100,11 +100,28 @@ void writeFile(FILE * fp, long int datSZ){
 }
 
 
-char * listDirect(char * curloc){
+int cmd_list (const char *cwd, const char *argpath)
+{
+  char *fullpath;
+
+  //Determine if the file is a directory.
+  if (!check_dir_exist (cwd, argpath))
+    return false;
+
+  //Create a single pathname to the directory from the pathname fragments.
+  if ((fullpath = merge_paths (cwd, argpath, NULL)) == NULL)
+    return false;
+  
+  listDirect (fullpath);
+}
+
+//listDirect (char *cwd, char *argpath)
+char * listDirect (char * curloc){
   char * directory;
   DIR *dp;  //directory pointer
   struct dirent *ep;
 
+  if (check_dir_exist (
   errno = 0;
   dp = opendir(curloc);
 

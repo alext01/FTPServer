@@ -29,6 +29,22 @@ void store(session_info_t *si, char *cmd, char *purp) {
 	FILE *storfile;
 	int rt = -1;
 	char buffer[BUFFSIZE];
+
+
+	//Determine if the pathname argument is correct and allowed.
+	if ((pathCheck = check_futer_file(si->cwd, cmd)) == -1) {
+	  send_mesg_450 (si->c_sfd);
+	  return;
+	} else if (pathCheck == -2) {
+	  //improper return code, REDO
+	  send_mesg_553 (si->c_sfd);
+	  return;
+	} else if (pathCheck == -3) {
+	  send_mesg_553 (si->c_sfd);
+	  return;
+	}
+
+
 	//if client is anonymous or they haven't logged in, they don't
 	//have permission to run this command
 	if (si->logged_in == false || strcmp(si->user,"anonymous") == 0) {
@@ -36,11 +52,18 @@ void store(session_info_t *si, char *cmd, char *purp) {
 		send_all(si->c_sfd,(uint8_t*)permdeny,strlen(permdeny));
 		return;
 	}
-	//data connection must already exist
-	if (si->d_sfd == 0) {
-		char *nodata = "425 Use PORT or PASV first.\n";
-		send_all(si->c_sfd,(uint8_t*)nodata,strlen(nodata));
-		return;
+
+
+	/* Merge all pathname fragments to create a single pathname to use with
+	 * fopen(). */
+	char *fullPath;
+	if ((fullPath = merge_paths(si->cwd, cmd, NULL)) == NULL) {
+	  send_mesg_553 (si->c_sfd);
+	  return;
+	}
+	if ((storfile = fopen(fullPath,purp)) == NULL) {
+	  fprintf (stderr, "%s: fopen: %s\n", __FUNCTION__, strerror (errno));
+	  free(fullPath);
 	}
 
 	//send positive prelimitary reply
@@ -58,24 +81,12 @@ void store(session_info_t *si, char *cmd, char *purp) {
 	char *endln = ".\n";
 	send_all(si->c_sfd,(uint8_t*)endln,strlen(endln));
 
-	//Determine if the pathname argument is correct and allowed.
-	if ((pathCheck = check_futer_file(si->cwd, cmd)) == -1) {
-	  send_mesg_451 (si->c_sfd);
-	} else if (pathCheck == -2) {
-	  //improper return code, REDO
-	  send_mesg_553 (si->c_sfd);
-	} else if (pathCheck == -3) {
-	  send_mesg_553 (si->c_sfd);
+	//data connection must already exist
+	if (si->d_sfd == 0) {
+		char *nodata = "425 Use PORT or PASV first.\n";
+		send_all(si->c_sfd,(uint8_t*)nodata,strlen(nodata));
+		return;
 	}
-
-	/* Merge all pathname fragments to create a single pathname to use with
-	 * fopen(). */
-	char *fullPath;
-	if ((fullPath = merge_paths(si->cwd, cmd, NULL)) == NULL) {
-	  return;
-	}
-	storfile = fopen(fullPath,purp);
-	free(fullPath);
 
 	while(si->cmd_abort == false && rt != 0) {
 		FD_ZERO(&rfds);
