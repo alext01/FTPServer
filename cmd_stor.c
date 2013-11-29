@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include "cmd_stor.h"
@@ -65,7 +66,7 @@ void store(session_info_t *si, char *cmd, char *purp) {
 	}
 
 	char *fullPath;
-	if ((fullPath = merg_paths(si->cwd, cmd, NULL)) == NULL) {
+	if ((fullPath = merge_paths(si->cwd, cmd, NULL)) == NULL) {
 	  return;
 	}
 	storfile = fopen(fullPath,purp);
