@@ -40,8 +40,19 @@ void store(session_info_t *si, char *cmd, char *purp) {
 
 	storfile = fopen(cmd,purp);
 	//send positive prelimitary reply
-	char *transferstart = "150 Opening BINARY mode data connection for button.14.0.shar.\n";
+	char *transferstart = "150 Opening ";
+	char *middle = " mode data connection for ";
+	char *type;
 	send_all(si->c_sfd,(uint8_t*)transferstart,strlen(transferstart));
+	if (si->type == 'a')
+		type = "ASCII";
+	else
+		type = "BINARY";
+	send_all(si->c_sfd,(uint8_t*)type,strlen(type));
+	send_all(si->c_sfd,(uint8_t*)middle,strlen(middle));
+	send_all(si->c_sfd,(uint8_t*)cmd,strlen(cmd));
+	char *endln = ".\n";
+	send_all(si->c_sfd,(uint8_t*)endln,strlen(endln));
 
 	while(si->cmd_abort == false && rt != 0) {
 		FD_ZERO(&rfds);

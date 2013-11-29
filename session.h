@@ -22,6 +22,7 @@ typedef struct {
 	bool cmd_abort;			//command to abort
 	bool cmd_quit;			//command to quit has been given
 	char cmd_string[CMD_STRLEN];	//command string for current command
+	char type;
 }session_info_t;
 
 /******************************************************************************

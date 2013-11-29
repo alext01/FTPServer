@@ -36,6 +36,7 @@ int session(int c_sfd) {
 	sessioninfo.cmd_complete = false;
 	sessioninfo.user[0] = '\0';
 	sessioninfo.cmd_string[0] = '\0';
+	sessioninfo.type = 'a';
 	strcpy(sessioninfo.cwd,"/");
 
 	commandstr[0] = '\0';

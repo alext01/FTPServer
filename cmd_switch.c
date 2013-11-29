@@ -46,6 +46,7 @@
 #include "session.h"
 #include "users.h"
 #include "cmd_stor.h"
+#include "cmd_misc.h"
 
 
 //Preprocessor Macro Define(s)
@@ -92,6 +93,8 @@ void *command_switch(void *param)
   char *arg,
        *cmd,
        *cmdLine;
+
+  char *notimplemented = "502 Command not Implemented.\n";
 
   session_info_t *si;
 
@@ -175,6 +178,7 @@ void *command_switch(void *param)
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	cmd_type(si, arg);
 
       /* STRU <SP> <structure-code> <CRLF> */
       } else if (strcmp(cmd, "STRU") == 0) {
@@ -257,6 +261,7 @@ void *command_switch(void *param)
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+		cmd_appe(si,arg);
 
       /* ALLO <SP> <decimal-integer> [<SP> R <SP> <decimal-integer>]<CRLF> */
       } else if (strcmp(cmd, "ALLO") == 0) {
@@ -310,7 +315,8 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "SYST") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+    	  printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+    	  send_all(si->c_sfd,(uint8_t*)notimplemented,strlen(notimplemented));
 
       /* STAT [<SP> <pathname>] <CRLF> */
       } else if (strcmp(cmd, "STAT") == 0) {

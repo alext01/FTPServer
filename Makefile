@@ -12,12 +12,12 @@ LDFLAGS	=	-pthread
 
 #main program
 
-main: 	config.o cmdstrparser.o cmdswitch.o controlthread.o main.o md5.o net.o response.o servercmd.o session.o queue.o users.o cmd_stor.o
+main: 	config.o cmdstrparser.o cmdswitch.o controlthread.o main.o md5.o net.o response.o servercmd.o session.o queue.o users.o cmd_stor.o cmd_misc.o
 
 
 main.o:		main.c config.h ctrlthread.h net.h servercmd.h
 
-cmdswitch.o:	cmd_switch.c cmd_switch.h cmd_string_parser.h net.h session.h users.h
+cmdswitch.o:	cmd_switch.c cmd_switch.h cmd_string_parser.h net.h session.h users.h cmd_misc.h users.h net.h
 		$(CC) $(CFLAGS) -c -o $@ $<
 
 cmdstrparser.o:	cmd_string_parser.c cmd_string_parser.h
@@ -48,10 +48,12 @@ cmd_stor.o: cmd_stor.c cmd_stor.h session.h
 
 filemanip.o: filemanip.c filemanip.h common.h
 
+cmd_misc.o: cmd_misc.c cmd_misc.h net.h session.h
+
 
 
 
 #Clean up the repository.
 .PHONY:		clean
 clean:
-		$(RM) main cmdstrparser.o cmdswitch.o config.o ctrlthread.o main.o md5.o net.o path.o response.o servercmd.o session.o queue.o users.o filemanip.o cmd_stor.o
+		$(RM) main cmdstrparser.o cmdswitch.o config.o ctrlthread.o main.o md5.o net.o path.o response.o servercmd.o session.o queue.o users.o filemanip.o cmd_stor.o cmd_misc.o
