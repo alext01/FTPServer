@@ -215,7 +215,7 @@ void *command_switch(void *param)
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command STOR Invoked
-    	cmd_stor(si,arg);
+    	cmd_stor(si, arg);
 
       /* APPE <SP> <pathname> <CRLF> */
       } else if (strcmp(cmd, "APPE") == 0) {
@@ -224,7 +224,7 @@ void *command_switch(void *param)
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command APPE Invoked
-	cmd_appe(si,arg);
+	cmd_appe(si, arg);
 
       /* LIST [<SP> <pathname>] <CRLF> */
       } else if (strcmp(cmd, "LIST") == 0) {
