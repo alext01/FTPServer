@@ -125,7 +125,7 @@ int check_futer_file (const char *cwd, char *argpath)
   if (!within_rootdir (fullpath, trimmed)) {
     free (fullpath);
     free (trimmed);
-    return -1;
+    return -2;
   }
 
   //Trimmed is freed in this function.
@@ -135,7 +135,7 @@ int check_futer_file (const char *cwd, char *argpath)
    * directory, the new file cannot be created. */
   if (is_a_dir (fullpath)) {
     free (fullpath);
-    return -2;
+    return -3;
   }
 
   free (fullpath);

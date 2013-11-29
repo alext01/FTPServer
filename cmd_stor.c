@@ -5,6 +5,7 @@
 //#include "filemanip.h"
 #include "session.h"
 #include "net.h"
+#include "path.h"
 #include <unistd.h>
 
 void cmd_stor(session_info_t *si, char *cmd) {
@@ -19,6 +20,7 @@ void cmd_appe(session_info_t *si, char *cmd) {
 
 void store(session_info_t *si, char *cmd, char *purp) {
 
+  int pathCheck;
 	struct timeval timeout;
 	fd_set rfds;
 	FILE *storfile;
@@ -38,7 +40,6 @@ void store(session_info_t *si, char *cmd, char *purp) {
 		return;
 	}
 
-	storfile = fopen(cmd,purp);
 	//send positive prelimitary reply
 	char *transferstart = "150 Opening ";
 	char *middle = " mode data connection for ";
@@ -54,6 +55,21 @@ void store(session_info_t *si, char *cmd, char *purp) {
 	char *endln = ".\n";
 	send_all(si->c_sfd,(uint8_t*)endln,strlen(endln));
 
+	if ((pathCheck = check_futer_file(si->cwd, cmd)) == -1) {
+	  send_mesg_451();
+	} else if (pathCheck == -2) {
+	  //improper return code, REDO
+	  send_mesg_553();
+	} else if (pathCheck == -3) {
+	  send_mesg_553();
+	}
+
+	char *fullPath;
+	if ((fullPath = merg_paths(si->cwd, cmd, NULL)) == NULL) {
+	  return;
+	}
+	storfile = fopen(fullPath,purp);
+	free(fullPath);
 	while(si->cmd_abort == false && rt != 0) {
 		FD_ZERO(&rfds);
 		FD_SET(si->d_sfd,&rfds);
