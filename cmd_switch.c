@@ -329,6 +329,8 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("ERROR: Command <%s> Unknown!\n", cmd);
 	printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
+    send_all(si->c_sfd,(uint8_t*)notimplemented,strlen(notimplemented));
+
 
       } //END statement 'if-else'
 
@@ -367,12 +369,19 @@ void *command_switch(void *param)
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	char *printstart = "257 \"";
+	char *printend = "\".\n";
+	send_all(si->c_sfd,(uint8_t*)printstart,strlen(printstart));
+	send_all(si->c_sfd,(uint8_t*)si->cwd,strlen(si->cwd));
+	send_all(si->c_sfd,(uint8_t*)printend,strlen(printend));
 
       } else {
 
 	//Debug Print
 	printf("ERROR: Command <%s> Unknown!\n", cmd);
 	printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
+    send_all(si->c_sfd,(uint8_t*)notimplemented,strlen(notimplemented));
+
 
       } //END statement 'if-else'
 
@@ -385,6 +394,8 @@ void *command_switch(void *param)
       //Debug Print
       printf("ERROR: Command <%s> Unknown!\n", cmd);
       printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
+      send_all(si->c_sfd,(uint8_t*)notimplemented,strlen(notimplemented));
+
 
     } //END statement 'if-else'
 
