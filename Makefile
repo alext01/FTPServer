@@ -49,7 +49,7 @@ cmd_stor.o: 	cmd_stor.c cmd_stor.h net.h path.h session.h
 
 cmd_stor.o: 	cmd_stor.c cmd_stor.h net.h path.h response.h session.h
 
-filemanip.o: 	filemanip.c filemanip.h common.h
+filemanip.o: 	filemanip.c filemanip.h common.h path.h
 
 cmd_misc.o: 	cmd_misc.c cmd_misc.h net.h session.h
 

@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include "filemanip.h"
+#include "path.h"
 
 #define MAX_FDATSZ 4096
 
@@ -121,7 +122,7 @@ char * listDirect (char * curloc){
   DIR *dp;  //directory pointer
   struct dirent *ep;
 
-  if (check_dir_exist (
+  //if (check_dir_exist (
   errno = 0;
   dp = opendir(curloc);
 
