@@ -30,4 +30,18 @@
 void cmd_type(session_info_t *si, char *arg);
 
 
+/******************************************************************************
+ * Changes Mode.  Only valid mode is stream
+ *
+ * Arguments:
+ *   arg - current command with parameter
+ *
+ * Returns
+ * 	void
+ *
+ * Original author: Justin Slind
+ *****************************************************************************/
+void cmd_mode(session_info_t *si, char *arg);
+
+
 #endif //__CMD_MISC_H__

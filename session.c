@@ -15,22 +15,24 @@
 #include <errno.h>
 #include <pthread.h>
 #include <stdbool.h>
-#include <sys/select.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+#include <stdio.h>
 #include <string.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include "session.h"
-#include "queue.h"
 #include "cmd_switch.h"
 #include "net.h"
-
-#include <stdio.h>
-
+#include "session.h"
+#include "queue.h"
 
 
 extern int shutdown_server;
 
+
+/******************************************************************************
+ * session - see session.h
+ *****************************************************************************/
 int session(int c_sfd) {
 
 	queue *cmd_queue_ptr = NULL;
@@ -155,7 +157,9 @@ int session(int c_sfd) {
 }
 
 
-//Evan: I have changed the void return type to int, so that recv may return error.
+/******************************************************************************
+ * readCmd - see session.h
+ *****************************************************************************/
 int readCmd(char *str, int sock, session_info_t *si) {
 	int rt = 0;
 	int len = 0;

@@ -18,6 +18,22 @@
 
 #define BUFFSIZE 1000
 
+
+/******************************************************************************
+ * Stores a file with a unquie filename.  Ignores parameter.
+ *
+ * Arguments:
+ *   si - info for current session
+ *   arg - parameter
+ *
+ *
+ * Returns
+ * 	void
+ *
+ * Original author: Justin Slind
+ *****************************************************************************/
+void cmd_stou (session_info_t *si, char *arg);
+
 /******************************************************************************
  * Stores a file
  *
@@ -60,5 +76,6 @@ void cmd_appe(session_info_t *si, char *cmd);
  * Original author: Justin Slind
  *****************************************************************************/
 void store(session_info_t *si, char *cmd, char *purp);
+
 
 #endif //__CMD_STOR_H__

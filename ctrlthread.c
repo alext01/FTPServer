@@ -16,6 +16,9 @@
  *           https://computing.llnl.gov/tutorials/pthreads/#CreatingThreads
  *           https://computing.llnl.gov/tutorials/pthreads/#Joining
  *           https://computing.llnl.gov/tutorials/pthreads/#Mutexes
+ *
+ *           I also viewed this website to clarify the detached state.
+ *           http://stackoverflow.com/a/6043021
  *****************************************************************************/
 #include <errno.h>
 #include <pthread.h>

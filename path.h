@@ -7,7 +7,7 @@
  *
  * Description:
  *   The functions on this determine if a pathname argument to a client command
- *   is acceptable for the given function.
+ *   is acceptable for the given function and manipulate the pathname strings.
  *****************************************************************************/
 #ifndef __PATH_H__
 #define __PATH_H__
@@ -17,45 +17,125 @@
 
 
 /******************************************************************************
- * check_file_exist
+ * Determine if a file exists. All components of the pathname must be present
+ * on the filesystem. This function also checks that the pathname is for a file
+ * that is either found in the server root directory, or is a descendant of the
+ * server root directory.
  *
- * -check if the path is within the scope of the root directory, and that a
- *  file given in the argument argpath exists.
+ * Arguments:
+ *  cwd - The current working directory for this session.
+ *  argpath - A pathname argument for a client command.
  *
  * Return values:
- *   true - It is safe to RETR this file.
- *   false - It is not safe to RETR this file.
+ *  true - The pathname is valid.
+ *  false - The pathname is not valid.
+ *
+ * Commands which call this function: RETR
+ *
+ * Original author: Evan Myers
  *****************************************************************************/
 bool check_file_exist (const char *cwd, const char *argpath);
 
 
 /******************************************************************************
- * check_dir_exist
+ * Determine if a directory exists. All components of the pathname must be
+ * present on the filesystem. All prefix components of the pathname must be
+ * directories.
+ * 
+ * This function also checks that the pathname is for a file that is either
+ * found in the server root directory, or is a descendant of the server root
+ * directory. 
+ *
+ * The final component to the pathname must be a directory.
+ *
+ * Arguments:
+ *  cwd - The current working directory for this session.
+ *  argpath - A pathname argument for a client command.
+ *
+ * Return values:
+ *  true - The pathname is valid.
+ *  false - The pathname is not valid.
+ *
+ * Commands which call this function: NLST, LIST, CWD
+ *
+ * Original author: Evan Myers
  *****************************************************************************/
 bool check_dir_exist (const char *cwd, const char *argpath);
 
 
 /******************************************************************************
- * check_futer_file
+ * Determine if a file may be created with the given pathname. All components
+ * of the pathname must be present on the filesystem. All prefix components of
+ * the pathname must be directories.
+ *
+ * This function also checks that the pathname is for a file that is either
+ * found in the server root directory, or is a descendant of the server root
+ * directory. 
+ *
+ * The final component of the filename must not be a directory.
+ *
+ * Arguments:
+ *  cwd - The current working directory for this session.
+ *  argpath - A pathname argument for a client command.
+ *
+ * Return values, when argument unique is false:
+ *   0 - The pathname is valid.
+ *  -1 - There was an error.
+ *  -2 - The filename is not within the root directory (defined in ftp.conf)
+ *
+ * Additional return values when unique is true:
+ *  -3 - The pathname is not unique.
+ *
+ * Commands which call this function: STOR, APPE, MKD, STRU
+ *
+ * Original author: Evan Myers
+ *
+ * note: argpath is not meant to be "const char *argpath"
  *****************************************************************************/
-int check_futer_file (const char *cwd, char *argpath);
+int check_futer_file (const char *cwd, char *argpath, bool unique);
 
 
 /******************************************************************************
- * merge_paths: updating comments later. 
+ * This function merges the three path fragments into a single pathname. This
+ * value is used by a command function, eg. RETR, to find the pathname to the
+ * requested file. 
  *
- * ATTENTION: You must free the returned string!
+ * The locations and purpose of each pathname:
+ *
+ *   -rootdir: A global variable. Stores the path to the root directory
+ *             selected by the server. This value is set in the file 'ftp.conf'.
+ *
+ *   -cwd:     The current working directory for the client session. This is a
+ *             relative pathname to rootdir, and can be found in session_info_t.
+ *
+ *    argpath: This is the pathname supplied as an argument by the client. This
+ *             string is relative to the current working directory found above.
+ *             This value is discarded when a command thread no longer requires
+ *             it.
+
+ * Note: The string returned by this function was created with a call to malloc.
+ *       The caller function must be sure to free this memory.
  *
  * Arguments:
- *  cwd - current working directory string.
- *  argpath - The pathname argument received from the client.
- *  reserve - Will update this comment. If you have not previously called
- *            trim_arg_path() on the second argument to this function, reserve
- *            should be passed NULL.
+ *      cwd - The current working directory string as described above.
+ *
+ *  argpath - The pathname argument received from the client as described above.
+ *
+ *  reserve - When checking if a file may be created on the server
+ *            (eg. the STOR command), it is necessary to remove the filename
+ *            that does not yet exist from the filepath before calling the
+ *            function canonicalize_file_name(). In this case, the argpath
+ *            string may be "trimmed" of the non-existant file before calling
+ *            this function. The string returned by this function will contain
+ *            "reserve" amount of indexes so the trimmed file may later be
+ *            re-attached to the pathname.
+ *
+ *            NULL can be passed to this argument if no space needs to be
+ *            reserved.
  *
  * Return value:
- *   NULL - error
- *   string - The full pathname (rootdir -> cwd -> argument).
+ *   string - The full pathname to the argument (rootdir -> cwd -> argument).
+ *     NULL - Error
  *****************************************************************************/
 char *merge_paths (const char *cwd, const char *argpath, const int *reserve);
 

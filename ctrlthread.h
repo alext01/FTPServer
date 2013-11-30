@@ -16,14 +16,17 @@
  *           https://computing.llnl.gov/tutorials/pthreads/#CreatingThreads
  *           https://computing.llnl.gov/tutorials/pthreads/#Joining
  *           https://computing.llnl.gov/tutorials/pthreads/#Mutexes
+ *
+ *           I also viewed this website to clarify the detached state.
+ *           http://stackoverflow.com/a/6043021
  *****************************************************************************/
 #ifndef __CONTROLTHREAD_H__
 #define __CONTROLTHREAD_H__
 
 
 //These values will be declared in main.c, they are required in controlthread.c
-extern int active_control_threads;           //Used to lock active_control_threads.
-extern pthread_mutex_t control_count_mutex;  //Number of control connection threads.
+extern int active_control_threads;          //Used to lock active_control_threads.
+extern pthread_mutex_t control_count_mutex; //Number of control connection threads.
 
 
 /******************************************************************************

@@ -12,7 +12,7 @@
  *
  * Acknowledgements:
  *    Evan - I have included my acknowledgements for working with pthreads in
- *           the file header of "controlthread.h" and "controlthread.c".
+ *           the file header of "ctrlthread.h" and "ctrlthread.c".
  *****************************************************************************/
 #include <errno.h>
 #include <pthread.h>
@@ -87,12 +87,23 @@ int main (int argc, char *argv[])
   
   char *root_temp;
 
+  //Retrieve the name of the root directory from the config file.
   if ((root_temp = get_config_value ("ROOT_PATH_CONFIG", FTP_CONFIG_FILE)) == NULL)
     return -1;
 
+  /* Append the relative path from the server executable to the server root directory
+   * to the absolute path of the server executable. */
   if ((rootdir = get_config_path (root_temp)) == NULL) {
     free (root_temp);
     return -1;
+  }
+  free (root_temp);
+
+  root_temp = rootdir;
+  /* Canonicalize the path to the server root directory 
+   * (eg. resolve all "..", ".", excessive "/" and symbolic links). */
+  if ((rootdir = canonicalize_file_name (root_temp)) == NULL) {
+    fprintf (stderr, "%s: canonicalize_file_name: %s\n", __FUNCTION__, strerror (errno));
   }
   free (root_temp);
 
