@@ -114,6 +114,7 @@ int cmd_list (const char *cwd, const char *argpath)
     return false;
   
   listDirect (fullpath);
+  return 1;
 }
 
 //listDirect (char *cwd, char *argpath)
@@ -134,13 +135,12 @@ char * listDirect (char * curloc){
     if(ep->d_name[0] != '.'){
       char * pathNfile = malloc(strlen(curloc) + strlen(ep->d_name) + 2);
       strcpy(pathNfile, curloc);
-      // printf("curloc: %s\n", curloc);
       strcat(pathNfile, "/");
       strcat(pathNfile, ep->d_name);
-      // printf("file path: %s\n", pathNfile);
-      printf("File Type: %u\n", ep->d_type);
-      detailList(pathNfile);
+
+      detailList(ep, pathNfile);
       puts(ep->d_name);
+      free(pathNfile);
     }
 
     //checks to see if its and error or eof
@@ -155,7 +155,7 @@ char * listDirect (char * curloc){
   return directory;
 }
 
-void detailList(char * filepath){
+void detailList(struct dirent* dirInfo, char * filepath){
   struct stat fileStat;
   int errchk;
   errno = 0;
@@ -168,9 +168,21 @@ void detailList(char * filepath){
     return;
   }
 
+  if(dirInfo->d_type == DT_DIR){
+    // append d
+  }
+  else if(dirInfo->d_type == DT_LNK){
+    // append l
+  }
+  else{
+    // append -
+  }
+
   printf("Mode:                  %lo (octal)\n", (unsigned long) fileStat.st_mode);
+
 }
 
+/*
 char * changeDirect(char * curloc, char * directChanges){
   char newPath[MAX_FDATSZ];
   int changeSz;
@@ -187,4 +199,4 @@ char * changeDirect(char * curloc, char * directChanges){
   }
   
   return newPath;
-}
+  }*/
