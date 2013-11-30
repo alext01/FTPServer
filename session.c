@@ -1,3 +1,17 @@
+/******************************************************************************
+ * Students: Evan Myers, Justin Slind, Alex Tai, James Yoo
+ * Course: CMPT-361
+ * Assignment #3 - ftp server
+ * File: session.c
+ * Date: November 2013
+ *
+ * Description:
+ *   The main loop that each client goes through.  Accepts commands and stores
+ *   them in a queue.  Launches a separate thread to deal with commands one at
+ *   a time. Handles the abort.
+ *****************************************************************************/
+
+
 #include <errno.h>
 #include <pthread.h>
 #include <stdbool.h>

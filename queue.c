@@ -1,3 +1,15 @@
+/******************************************************************************
+ * Students: Evan Myers, Justin Slind, Alex Tai, James Yoo
+ * Course: CMPT-361
+ * Assignment #3 - ftp server
+ * File: queue.c
+ * Date: November 2013
+ *
+ * Description:
+ *   Functions to support building a queue of commands, stored as strings,
+ *   first in first out.
+ *****************************************************************************/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

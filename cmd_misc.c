@@ -1,3 +1,13 @@
+/******************************************************************************
+ * Students: Evan Myers, Justin Slind, Alex Tai, James Yoo
+ * Course: CMPT-361
+ * Assignment #3 - ftp server
+ * File: cmd_misc.c
+ * Date: November 2013
+ *
+ * Description:
+ *   Miscellaneous ftp commands that don't fit in other categories
+ *****************************************************************************/
 
 #include <strings.h>
 #include <string.h>
@@ -47,6 +57,23 @@ void cmd_type(session_info_t *si, char *arg) {
 			return;
 		}
 	}
+	send_all(si->c_sfd,(uint8_t*)fail,strlen(fail));
+	return;
+}
+
+void cmd_mode(session_info_t *si, char *arg) {
+	char *fail = "504 Command not implemented for that parameter.\n";
+	char *ascii = "200 Switching to stream mode.\n";
+	if (arg)
+		if (strlen(arg) == 1) {
+			arg[0] = tolower(arg[0]); //change arg to lowercase
+			if (arg[0] == 's') {
+
+				send_all(si->c_sfd,(uint8_t*)ascii,strlen(ascii));
+				return;
+
+			}
+		}
 	send_all(si->c_sfd,(uint8_t*)fail,strlen(fail));
 	return;
 }

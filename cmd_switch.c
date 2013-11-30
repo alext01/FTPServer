@@ -200,7 +200,7 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
-    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+    	cmd_mode(si, arg);
 
       /* RETR <SP> <pathname> <CRLF> */
       } else if (strcmp(cmd, "RETR") == 0) {
@@ -292,8 +292,8 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
-    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
-
+    	//send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+		cmd_stou(si,arg);
       /* ALLO <SP> <decimal-integer> [<SP> R <SP> <decimal-integer>]<CRLF> */
       } else if (strcmp(cmd, "ALLO") == 0) {
 

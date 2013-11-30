@@ -1,3 +1,14 @@
+/******************************************************************************
+ * Students: Evan Myers, Justin Slind, Alex Tai, James Yoo
+ * Course: CMPT-361
+ * Assignment #3 - ftp server
+ * File: cmd_misc.h
+ * Date: November 2013
+ *
+ * Description:
+ *   Miscellaneous ftp commands that don't fit in other categories
+ *****************************************************************************/
+
 #ifndef __CMD_MISC_H__
 #define __CMD_MISC_H__
 #include "session.h"
@@ -17,6 +28,20 @@
  *****************************************************************************/
 
 void cmd_type(session_info_t *si, char *arg);
+
+
+/******************************************************************************
+ * Changes Mode.  Only valid mode is stream
+ *
+ * Arguments:
+ *   arg - current command with parameter
+ *
+ * Returns
+ * 	void
+ *
+ * Original author: Justin Slind
+ *****************************************************************************/
+void cmd_mode(session_info_t *si, char *arg);
 
 
 #endif //__CMD_MISC_H__
