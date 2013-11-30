@@ -8,6 +8,9 @@
  * Description:
  *   FTP commands that deal with writing files to the file system:
  *   STOR, APPE, STOU
+ *
+ *   Code Citations:
+ *   http://stackoverflow.com
  *****************************************************************************/
 
 #include <errno.h>
@@ -15,6 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <time.h>
 #include "cmd_stor.h"
 //#include "filemanip.h"
 #include "net.h"
@@ -22,6 +27,32 @@
 #include "response.h"
 #include "session.h"
 
+
+void cmd_stou(session_info_t *si, char *arg) {
+
+
+	//RFC 959 does not require or expect parameter for STOU cmd.
+	//This implementation ignores parameter to allow
+	//modern ftp clients to work with STOU.
+
+		srand(time(NULL));
+		char tempname[256];
+		char *fullPath = NULL;
+		int rt;
+		do {
+			if (fullPath)
+				free(fullPath);
+			sprintf(tempname,"%d",rand());
+			printf("%s\n",tempname);
+			fullPath = merge_paths(si->cwd,tempname,NULL);
+			rt = access(fullPath, F_OK);
+		} while (rt != -1); //verify that random name doesn't exist
+		free(fullPath);
+		store(si,tempname,"w");
+
+
+	return;
+}
 
 void cmd_stor(session_info_t *si, char *cmd) {
 	store(si,cmd,"w");
@@ -46,13 +77,19 @@ void store(session_info_t *si, char *cmd, char *purp) {
 	//Determine if the pathname argument is correct and allowed.
 	if ((pathCheck = check_futer_file(si->cwd, cmd)) == -1) {
 	  send_mesg_450 (si->c_sfd);
+	  close(si->d_sfd);
+	  si->d_sfd = 0;
 	  return;
 	} else if (pathCheck == -2) {
 	  //improper return code, REDO
 	  send_mesg_553 (si->c_sfd);
+	  close(si->d_sfd);
+	  si->d_sfd = 0;
 	  return;
 	} else if (pathCheck == -3) {
 	  send_mesg_553 (si->c_sfd);
+	  close(si->d_sfd);
+	  si->d_sfd = 0;
 	  return;
 	}
 
@@ -62,6 +99,8 @@ void store(session_info_t *si, char *cmd, char *purp) {
 	if (si->logged_in == false || strcmp(si->user,"anonymous") == 0) {
 		char *permdeny = "550 Permission denied.\n";
 		send_all(si->c_sfd,(uint8_t*)permdeny,strlen(permdeny));
+		close(si->d_sfd);
+		si->d_sfd = 0;
 		return;
 	}
 
@@ -71,13 +110,15 @@ void store(session_info_t *si, char *cmd, char *purp) {
 	char *fullPath;
 	if ((fullPath = merge_paths(si->cwd, cmd, NULL)) == NULL) {
 	  send_mesg_553 (si->c_sfd);
+	  close(si->d_sfd);
+	  si->d_sfd = 0;
 	  return;
 	}
+	printf("fullPath: %s\n",fullPath);
 	if ((storfile = fopen(fullPath,purp)) == NULL) {
 	  fprintf (stderr, "%s: fopen: %s\n", __FUNCTION__, strerror (errno));
-	  free(fullPath);
 	}
-
+	free(fullPath);
 	//send positive prelimitary reply
 	char *transferstart = "150 Opening ";
 	char *middle = " mode data connection for ";
@@ -137,5 +178,6 @@ void store(session_info_t *si, char *cmd, char *purp) {
 	//close file and data connection
 	fclose(storfile);
 	close(si->d_sfd);
+	si->d_sfd = 0;
 	return;
 }
