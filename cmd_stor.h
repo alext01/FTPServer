@@ -1,10 +1,11 @@
 #ifndef __CMD_STOR_H__
 #define __CMD_STOR_H__
 
-#include "session.h"
+#include "session.h" //required for 'session_info_t' in function prototype.
 
 
 #define BUFFSIZE 1000
+
 
 /******************************************************************************
  * Stores a file
@@ -18,6 +19,7 @@
  * 	void
  *
  * Original author: Justin Slind
+ * modified by: Evan Myers
  *****************************************************************************/
 void cmd_stor(session_info_t *si, char *cmd);
 
@@ -32,21 +34,22 @@ void cmd_stor(session_info_t *si, char *cmd);
  * 	void
  *
  * Original author: Justin Slind
+ * Modified by: Evan Myers
  *****************************************************************************/
 void cmd_appe(session_info_t *si, char *cmd);
 
+
 /******************************************************************************
- * Stores or appends
+ * Store a file with a unique name. If the filename argument received with the
+ * client command is not unique, append a character to the filename and recheck.
  *
  * Arguments:
- *   cmd - current command with parameter
  *   si - info for current session
+ *   cmd - current command with parameter
  *
- * Returns
- * 	head of the queue
- *
- * Original author: Justin Slind
+ * Original author: Evan Myers
  *****************************************************************************/
-void store(session_info_t *si, char *cmd, char *purp);
+void cmd_stou (session_info_t *si, char *arg);
+
 
 #endif //__CMD_STOR_H__

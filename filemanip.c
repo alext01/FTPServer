@@ -115,7 +115,6 @@ int cmd_list (const char *cwd, const char *argpath)
   listDirect (fullpath);
 }
 
-//listDirect (char *cwd, char *argpath)
 char * listDirect (char * curloc){
   char * directory;
   DIR *dp;  //directory pointer

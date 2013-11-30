@@ -186,12 +186,13 @@ void *command_switch(void *param)
 	cmd_type(si, arg);
 
       /* STRU <SP> <structure-code> <CRLF> */
-      } else if (strcmp(cmd, "STRU") == 0) {
+      } else if (strcmp(cmd, "STOU") == 0) {
 
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
-    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+	//Command TYPE Invoked
+    	cmd_stou(si, arg);
 
       /* MODE <SP> <mode-code> <CRLF> */
       } else if (strcmp(cmd, "MODE") == 0) {

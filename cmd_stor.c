@@ -11,38 +11,113 @@
 #include "session.h"
 
 
+//Local function prototype.
+static void store(session_info_t *si, char *cmd, char *purp);
+
+
+/******************************************************************************
+ * cmd_stor - see cmd_stor.h
+ *****************************************************************************/
 void cmd_stor(session_info_t *si, char *cmd) {
-	store(si,cmd,"w");
-	return;
-}
-
-void cmd_appe(session_info_t *si, char *cmd) {
-	store(si,cmd,"a");
-	return;
-}
-
-void store(session_info_t *si, char *cmd, char *purp) {
-
-  int pathCheck;
-	struct timeval timeout;
-	fd_set rfds;
-	FILE *storfile;
-	int rt = -1;
-	char buffer[BUFFSIZE];
-
+        int pathCheck;
 
 	//Determine if the pathname argument is correct and allowed.
-	if ((pathCheck = check_futer_file(si->cwd, cmd)) == -1) {
+        if ((pathCheck = check_futer_file (si->cwd, cmd, false)) != 0) {
 	  send_mesg_450 (si->c_sfd);
 	  return;
 	} else if (pathCheck == -2) {
-	  //improper return code, REDO
 	  send_mesg_553 (si->c_sfd);
 	  return;
 	} else if (pathCheck == -3) {
 	  send_mesg_553 (si->c_sfd);
 	  return;
 	}
+
+	store(si,cmd,"w");
+	return;
+}
+
+
+/******************************************************************************
+ * cmd_appe - see cmd_stor.h
+ *****************************************************************************/
+void cmd_appe(session_info_t *si, char *cmd) {
+        int pathCheck;
+
+	//Determine if the pathname argument is correct and allowed.
+        if ((pathCheck = check_futer_file (si->cwd, cmd, false)) != 0) {
+	  send_mesg_450 (si->c_sfd);
+	  return;
+	} else if (pathCheck == -2) {
+	  send_mesg_553 (si->c_sfd);
+	  return;
+	} else if (pathCheck == -3) {
+	  send_mesg_553 (si->c_sfd);
+	  return;
+	}
+
+	//Store the file.
+	store(si,cmd,"a");
+	return;
+}
+
+
+/******************************************************************************
+ * cmd_stou - see cmd_stor.h
+ *****************************************************************************/
+void cmd_stou (session_info_t *si, char *arg) 
+{
+  int pathCheck;
+  int arg_strlen;
+
+  /* Determine if the argument would create a unique filename. If the path to
+   * the file is accepted, but the filename is not unique, append a character
+   * in an attempt to find a unique filename. */
+  while ((pathCheck = check_futer_file (si->cwd, arg, true)) != 0) {
+    //Error while processing.
+    if (pathCheck == -1) {
+      send_mesg_450 (si->c_sfd);
+      return;
+
+      //Illegal pathname.
+    } else if (pathCheck == -2) {
+      send_mesg_553 (si->c_sfd);
+      return;
+
+      //The name is not unique, attempt to make it unique by appending a char.
+    } else if (pathCheck == -3) {
+      if ((arg_strlen = strlen (arg) + 1) > CMD_STRLEN)
+	return;
+      arg[arg_strlen -1] = 'a'; //'a' chosen arbitrarily.
+      continue;
+    }
+  }
+
+  //The filename is unique, store the file.
+  store (si, arg, "w");
+  return;
+}
+
+
+/******************************************************************************
+ * Stores or appends
+ *
+ * Arguments:
+ *   cmd - current command with parameter
+ *   si - info for current session
+ *
+ * Returns
+ * 	head of the queue
+ *
+ * Original author: Justin Slind
+ *****************************************************************************/
+static void store(session_info_t *si, char *cmd, char *purp) {
+	struct timeval timeout;
+	fd_set rfds;
+	FILE *storfile;
+	int rt = -1;
+	char buffer[BUFFSIZE];
+	char *fullPath;
 
 
 	//if client is anonymous or they haven't logged in, they don't
@@ -56,17 +131,17 @@ void store(session_info_t *si, char *cmd, char *purp) {
 
 	/* Merge all pathname fragments to create a single pathname to use with
 	 * fopen(). */
-	char *fullPath;
 	if ((fullPath = merge_paths(si->cwd, cmd, NULL)) == NULL) {
 	  send_mesg_450 (si->c_sfd);
 	  return;
 	}
-	if ((storfile = fopen(fullPath,purp)) == NULL) {
+	if ((storfile = fopen (fullPath, purp)) == NULL) {
 	  fprintf (stderr, "%s: fopen: %s\n", __FUNCTION__, strerror (errno));
-	  free(fullPath);
+	  free (fullPath);
 	  send_mesg_450 (si->c_sfd);
 	  return;
 	}
+	free (fullPath);
 
 	//send positive prelimitary reply
 	char *transferstart = "150 Opening ";
@@ -127,5 +202,6 @@ void store(session_info_t *si, char *cmd, char *purp) {
 	//close file and data connection
 	fclose(storfile);
 	close(si->d_sfd);
+	si->d_sfd = 0;
 	return;
 }
