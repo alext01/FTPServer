@@ -1,3 +1,15 @@
+/******************************************************************************
+ * Students: Evan Myers, Justin Slind, Alex Tai, James Yoo
+ * Course: CMPT-361
+ * Assignment #3 - ftp server
+ * File: cmd_stor.h
+ * Date: November 2013
+ *
+ * Description:
+ *   FTP commands that deal with writing files to the file system:
+ *   STOR, APPE, STOU
+ *****************************************************************************/
+
 #ifndef __CMD_STOR_H__
 #define __CMD_STOR_H__
 

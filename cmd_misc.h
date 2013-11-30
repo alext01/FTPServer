@@ -1,3 +1,14 @@
+/******************************************************************************
+ * Students: Evan Myers, Justin Slind, Alex Tai, James Yoo
+ * Course: CMPT-361
+ * Assignment #3 - ftp server
+ * File: cmd_misc.h
+ * Date: November 2013
+ *
+ * Description:
+ *   Miscellaneous ftp commands that don't fit in other categories
+ *****************************************************************************/
+
 #ifndef __CMD_MISC_H__
 #define __CMD_MISC_H__
 #include "session.h"
