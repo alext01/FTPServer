@@ -216,6 +216,24 @@ void detailList(struct dirent* dirInfo, char * filepath, char ** output){
 
 }
 
+
+int makeDir(char * filepath){
+  mode_t permissions;
+  permissions = permissions | S_IRUSR;
+  permissions = permissions | S_IWUSR;
+  permissions = permissions | S_IRGRP;
+  permissions = permissions | S_IROTH;
+
+  errno = 0;
+
+  if( (mkdir(filepath, permissions)) == -1){
+    fprintf(stderr, "Error encountered while making directory: %s\n", strerror(errno));
+    return -1;
+  }
+
+  return 0;
+}
+
 /*
 char * changeDirect(char * curloc, char * directChanges){
   char newPath[MAX_FDATSZ];
