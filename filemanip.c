@@ -29,7 +29,6 @@
 #include "session.h"
 
 #define MAX_FDATSZ 4096
-#define LIST_OUTPUT_MAX 4096
 
 char fileBuff[MAX_FDATSZ];
 
@@ -156,7 +155,7 @@ void listDirect (session_info_t *si, char * fullpath, bool detail){
   //char * directory;
   DIR *dp;                       //directory pointer
   struct dirent *ep;             //entry pointer
-  char output[LIST_OUTPUT_MAX];  //output buffer
+  char *output;                  //output buffer
 
   char *aborted;
   char *success;
@@ -169,37 +168,34 @@ void listDirect (session_info_t *si, char * fullpath, bool detail){
     return;
   }
 
-  //output = (char *)calloc(4096, sizeof(char));
-  //if(output == NULL){
-  // fprintf(stderr, "Error in allocating memory for output in list.");
-  // return NULL;
-  //}
+  output = (char *)calloc(4096, sizeof(char));
+  if(output == NULL){
+    fprintf(stderr, "Error in allocating memory for output in list.");
+    send_mesg_451 (si->c_sfd);
+    close (si->d_sfd);
+    si->d_sfd = 0;
+    return;
+  }
 
   errno = 0;
-  bool initial = true;
-  output[0] = '\0';
   while(((ep = readdir(dp)) != NULL) && (si->cmd_abort == false)){
     //Do not list hidden files, current directory, or parent directory.
     if(ep->d_name[0] != '.'){
-      if (initial)
-	initial = false;
-      else
-	strcat (output, "\r\n");
-
       if(detail == true){
 	//char * pathNfile = malloc(strlen(curloc) + strlen(ep->d_name) + 2);
-	//	strcpy(pathNfile, curloc);
-	//	strcat(pathNfile, "/");
+	//strcpy(pathNfile, curloc);
+	//strcat(pathNfile, "/");
 	//strcat(pathNfile, ep->d_name);
 
-	//detailList(ep, pathNfile, &output);
+	detailList(ep, fullpath, &output);
 	//free(pathNfile);
-      }
-
-      strcat(output, ep->d_name);
+      } else {
+	strcat(output, ep->d_name);
+	strcat(output, "\r\n");
       //if(strlen(output) >= (outSize-50)){
       //	outSize += 4096;
       //	output = (char *) realloc(output, outSize * sizeof(char));
+      }
     }
   }
 
@@ -216,7 +212,8 @@ void listDirect (session_info_t *si, char * fullpath, bool detail){
   }
 
   send_all (si->d_sfd, (uint8_t*)output, strlen (output));
-    
+  free (output);
+
   if (si->cmd_abort == true) {
     printf ("sending code 426\n");
     aborted = "426 - Connection close; transfer aborted.\n";
@@ -237,18 +234,31 @@ void listDirect (session_info_t *si, char * fullpath, bool detail){
 }
 
 
-void detailList(struct dirent* dirInfo, char * filepath, char ** output){
+void detailList(struct dirent* dirInfo, char * fullpath, char ** output){
+  char *time;
   struct stat fileStat;
   int errchk;
   errno = 0;
 
-  errchk = stat(filepath, &fileStat);
+  char filename[strlen (fullpath) + 256];
+  filename[0] = '\0';
+  strcat (filename, fullpath);
+  strcat (filename, dirInfo->d_name);
+
+  errchk = stat(filename, &fileStat);
 
   // Check to see if stat() encountered any error
   if(errchk == -1){
     fprintf(stderr, "Error using stat function: %s\n", strerror(errno));
     return;
   }
+
+  if ((time = ctime (&fileStat.st_mtime)) == NULL) {
+    fprintf (stderr, "%s: ctime: %s\n", __FUNCTION__, strerror (errno));
+    return;
+  }
+
+  time[strlen (time) - 1] = '\0';
 
   if(dirInfo->d_type == DT_DIR){
     strcat(*output, "d");
@@ -268,18 +278,20 @@ void detailList(struct dirent* dirInfo, char * filepath, char ** output){
   (fileStat.st_mode & S_IXGRP) ? strcat(*output,"x"):strcat(*output,"-");
   (fileStat.st_mode & S_IROTH) ? strcat(*output,"r"):strcat(*output,"-");
   (fileStat.st_mode & S_IWOTH) ? strcat(*output,"w"):strcat(*output,"-");
-  (fileStat.st_mode & S_IXOTH) ? strcat(*output,"x  "):strcat(*output,"-  ");
+  (fileStat.st_mode & S_IXOTH) ? strcat(*output,"x"):strcat(*output,"-");
 
   
-  sprintf( (*output) + strlen(*output), "%zu   %d   %d   %lld   %s\n",
+  sprintf( (*output) + strlen(*output), " %zu   %d   %d   %lld   %s   %s\r\n",
 	   fileStat.st_nlink, fileStat.st_uid, fileStat.st_gid,
-	   (unsigned long long)fileStat.st_size, ctime(&fileStat.st_mtime));
+	   (unsigned long long)fileStat.st_size, time, dirInfo->d_name);
+
+  printf ("%s\n", *output);
   // printf("Mode:                  %lo (octal)\n", (unsigned long) fileStat.st_mode);
   return;
 }
 
 
-int makeDir(char * filepath){
+/*int makeDir(char * filepath){
   mode_t permissions = 0;
   permissions = permissions | S_IRUSR;
   permissions = permissions | S_IWUSR;
@@ -288,12 +300,17 @@ int makeDir(char * filepath){
   errno = 0;
 
   if( (mkdir(filepath, permissions)) == -1){
-    fprintf(stderr, "Error encountered while making directory: %s\n", strerror(errno));
+    fprintf(stderr, "%s: mkdir: %s\n", __FUNCTION__, strerror(errno));
+    
+    send_mesg_550(c_sfd);
+    close(si->d_sfd);
+    si->d_sfd = 0;
+
     return -1;
   }
 
   return 0;
-}
+  }*/
 
 /*
 char * changeDirect(char * curloc, char * directChanges){
