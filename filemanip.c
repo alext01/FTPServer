@@ -290,7 +290,7 @@ void detailList(struct dirent* dirInfo, char * fullpath, char ** output){
 }
 
 
-/*int makeDir(char * filepath){
+int makeDir(session_info_t *si, char * filepath){
   mode_t permissions = 0;
   permissions = permissions | S_IRUSR;
   permissions = permissions | S_IWUSR;
@@ -301,7 +301,7 @@ void detailList(struct dirent* dirInfo, char * fullpath, char ** output){
   if( (mkdir(filepath, permissions)) == -1){
     fprintf(stderr, "%s: mkdir: %s\n", __FUNCTION__, strerror(errno));
     
-    send_mesg_550(c_sfd);
+    send_mesg_550(si->c_sfd);
     close(si->d_sfd);
     si->d_sfd = 0;
 
@@ -309,7 +309,7 @@ void detailList(struct dirent* dirInfo, char * fullpath, char ** output){
   }
 
   return 0;
-  }*/
+}
 
 /*
 char * changeDirect(char * curloc, char * directChanges){

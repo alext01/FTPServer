@@ -133,7 +133,7 @@ void detailList(struct dirent * dirInfo, char * filepath, char ** output);
  *               was encountered. 
  * Description: Creates a directory
  ********************************************************/
-int makeDir(char * filepath);
+int makeDir(session_info_t *si, char * filepath);
 
 /*********************************************************
  *
