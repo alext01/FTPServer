@@ -77,5 +77,22 @@ void cmd_appe(session_info_t *si, char *cmd);
  *****************************************************************************/
 void store(session_info_t *si, char *cmd, char *purp);
 
+/******************************************************************************
+ * Close all sockets, reset stored socket file descriptor in the
+ * session_info_t structure, and close the file pointer when appropriate.
+ *
+ * This function was created to help defend against programmer error. These
+ * closing statements appear in many places in the stor command.
+ *
+ * Arguments:
+ *   si - info for current session
+ *   fp - the open filestream, set this to NULL if no filestream has been
+ *        opened.
+ *   errcode - The type of error. This should be set to zero if no error
+ *             occured.
+ *
+ * Original author: Evan Myers
+ *****************************************************************************/
+void cleanup_stor_recv (session_info_t *si, FILE *fp, int errcode);
 
 #endif //__CMD_STOR_H__
