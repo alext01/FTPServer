@@ -184,7 +184,7 @@ void listDirect (session_info_t *si, char * fullpath, bool detail){
       if (initial)
 	initial = false;
       else
-	strcat (output, "\n");
+	strcat (output, "\r\n");
 
       if(detail == true){
 	//char * pathNfile = malloc(strlen(curloc) + strlen(ep->d_name) + 2);
@@ -215,7 +215,7 @@ void listDirect (session_info_t *si, char * fullpath, bool detail){
     }
   }
 
-  send_all (si->c_sfd, (uint8_t*)output, strlen (output));
+  send_all (si->d_sfd, (uint8_t*)output, strlen (output));
     
   if (si->cmd_abort == true) {
     printf ("sending code 426\n");
