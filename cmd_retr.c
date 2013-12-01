@@ -43,6 +43,7 @@
 #include "cmd_retr.h"
 #include "net.h"
 #include "path.h"
+#include "response.h"
 #include "session.h"
 
 
@@ -82,7 +83,7 @@ void command_retrieve(session_info_t *si, char *path)
 
   bool fileCheck;
 
-  int retVal,
+  int retVal = BUFFSIZE, //Evans note: needs to be initialized, not 0 or uninit.
       selVal;
 
   char buffer[BUFFSIZE];
@@ -103,9 +104,8 @@ void command_retrieve(session_info_t *si, char *path)
     return;
   } //END statement 'if'
 
-  if (si->d_sfd == 0) {
-    noConnection = "425 - Cannot open data connection; please use the PORT or PASV command first.\n";
-    send_all(si->c_sfd, (uint8_t *)noConnection, strlen(noConnection));
+  if (!(fileCheck = check_file_exist(si->cwd, path))) {
+    send_mesg_553 (si->c_sfd);
     return;
   } //END statement 'if'
 
@@ -125,15 +125,26 @@ void command_retrieve(session_info_t *si, char *path)
   send_all(si->c_sfd, (uint8_t *)path, strlen(path));
   send_all(si->c_sfd, (uint8_t *)endLine, strlen(endLine));
 
-  if (!(fileCheck = check_file_exist(si->cwd, path))) {
+  if (si->d_sfd == 0) {
+    noConnection = "425 - Cannot open data connection; please use the PORT or PASV command first.\n";
+    send_all(si->c_sfd, (uint8_t *)noConnection, strlen(noConnection));
     return;
   } //END statement 'if'
 
   if ((fullPath = merge_paths(si->cwd, path, NULL)) == NULL) {
+    send_mesg_451 (si->c_sfd);
+    close(si->d_sfd);
+    si->d_sfd = 0;
     return;
   } //END statement 'if'
 
-  retrFile = fopen(fullPath, "w");
+  if ((retrFile = fopen(fullPath, "r")) == NULL) {
+    fprintf (stderr, "%s: fopen: %s\n", __FUNCTION__, strerror (errno));
+    free (fullPath);
+    send_mesg_451 (si->c_sfd);
+    close (si->d_sfd);
+    si->d_sfd = 0;
+  }
   free(fullPath);
 
   while ((si->cmd_abort == false) && (retVal != 0)) {
@@ -143,6 +154,7 @@ void command_retrieve(session_info_t *si, char *path)
     timeout.tv_usec = USEC_TIMEOUT;
     selVal = select((si->d_sfd + 1), NULL, &wfds, NULL, &timeout);
 
+
     if (selVal == -1) {
 
       if (errno == EINTR) {
@@ -150,6 +162,10 @@ void command_retrieve(session_info_t *si, char *path)
       } //END statement 'if'
 
       fprintf(stderr, "%s: select: %s\n", __FUNCTION__, strerror(errno));
+      send_mesg_451 (si->c_sfd);
+      close (si->d_sfd);
+      si->d_sfd = 0;
+      return;
 
     } else if (selVal == 0) {
       continue;
@@ -157,8 +173,24 @@ void command_retrieve(session_info_t *si, char *path)
 
     if (FD_ISSET(si->d_sfd, &wfds)) {
 
-      if ((retVal = send(si->d_sfd, buffer, BUFFSIZE, 0)) > 0) {
-	fwrite(buffer, sizeof(char), retVal, retrFile);
+      if ((retVal = fread(buffer, sizeof (*buffer), BUFFSIZE, retrFile)) == 0) {
+	if (ferror (retrFile)) {
+	  fprintf (stderr, "%s: fread: error while processing\n", __FUNCTION__);
+	  send_mesg_451 (si->c_sfd);
+	  close (si->d_sfd);
+	  si->d_sfd = 0;
+	  return;
+	} else if (feof (retrFile)) {
+	  continue;
+	} //END statement 'if-else'
+
+      } //END statement 'if'
+
+      if (send_all (si->d_sfd, (uint8_t*)buffer, retVal) == -1) {
+	send_mesg_451 (si->c_sfd);
+	close (si->d_sfd);
+	si->d_sfd = 0;
+	return;
       } //END statement 'if'
 
     } //END statement 'if'
@@ -176,6 +208,7 @@ void command_retrieve(session_info_t *si, char *path)
 
   fclose(retrFile);
   close(si->d_sfd);
+  si->d_sfd = 0;
   return;
 
 } //END function 'command_retrieve'

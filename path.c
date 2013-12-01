@@ -115,7 +115,7 @@ int check_futer_file (const char *cwd, char *argpath, bool unique)
   int reserve;
   int uniq_rv;
 
-  if ((trimmed = trim_arg_path (&argpath, &reserve)) == NULL); 
+  if ((trimmed = trim_arg_path (&argpath, &reserve)) == NULL)
     return -1;
 
   if ((fullpath = merge_paths (cwd, argpath, &reserve)) == NULL)
@@ -171,7 +171,14 @@ char *merge_paths (const char *cwd, const char *argpath, const int *reserve)
 
   rootdir_strlen = strlen (rootdir) + 1;
   cwd_strlen = strlen (cwd) + 1;
-  arg_strlen = strlen (argpath) + 1;
+  if (argpath == NULL) {
+    if (reserve == NULL)
+      arg_strlen = 0;
+    else
+      arg_strlen = 0 + *reserve;
+  } else {
+    arg_strlen = strlen (argpath) + 1;
+  }
 
   if (reserve != NULL)
     arg_strlen += *reserve;
@@ -186,7 +193,8 @@ char *merge_paths (const char *cwd, const char *argpath, const int *reserve)
   //Create the complete pathname argument. 
   strcpy (fullpath, rootdir);
   strcat (fullpath, cwd);
-  strcat (fullpath, argpath);
+  if (argpath != NULL)
+    strcat (fullpath, argpath);
 
   return fullpath;
 }

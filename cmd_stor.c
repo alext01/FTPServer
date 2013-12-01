@@ -28,7 +28,7 @@
 
 
 //Local function prototypes.
-static int perm_neg_check (session_info_t *si, const char *path);
+static int perm_neg_check (session_info_t *si, char *arg);
 
 
 void cmd_stou(session_info_t *si, char *arg) {
@@ -182,7 +182,7 @@ void store(session_info_t *si, char *cmd, char *purp) {
  *   0    Accept the filename argument.
  *  -1    Reject the filename argument.
  *****************************************************************************/
-static int perm_neg_check (session_info_t *si, const char *path)
+static int perm_neg_check (session_info_t *si, char *arg)
 {
 	  int pathCheck;
         //if client is anonymous or they haven't logged in, they don't
@@ -196,7 +196,7 @@ static int perm_neg_check (session_info_t *si, const char *path)
 	}
 
 	//Determine if the pathname argument should be accepted.
-	if ((pathCheck = check_futer_file(si->cwd, path, false)) == -1) {
+	if ((pathCheck = check_futer_file(si->cwd, arg, false)) == -1) {
 	  cleanup_stor_recv (si, NULL, 450);
 	  return -1;
 	} else if (pathCheck == -2) {
