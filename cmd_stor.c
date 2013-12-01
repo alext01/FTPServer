@@ -21,14 +21,26 @@
 #include <stdlib.h>
 #include <time.h>
 #include "cmd_stor.h"
-//#include "filemanip.h"
 #include "net.h"
 #include "path.h"
 #include "response.h"
 #include "session.h"
 
 
+//Local function prototypes.
+static int perm_neg_check (session_info_t *si, const char *path);
+
+
 void cmd_stou(session_info_t *si, char *arg) {
+	//if client is anonymous or they haven't logged in, they don't
+	//have permission to run this command
+	if (si->logged_in == false || strcmp(si->user,"anonymous") == 0) {
+		char *permdeny = "550 Permission denied.\n";
+		send_all(si->c_sfd,(uint8_t*)permdeny,strlen(permdeny));
+		close(si->d_sfd);
+		si->d_sfd = 0;
+		return;
+	}
 
 
 	//RFC 959 does not require or expect parameter for STOU cmd.
@@ -46,7 +58,7 @@ void cmd_stou(session_info_t *si, char *arg) {
 			printf("%s\n",tempname);
 			fullPath = merge_paths(si->cwd,tempname,NULL);
 			rt = access(fullPath, F_OK);
-		} while (rt != -1); //verify that random name doesn't exist
+		} while ((rt != -1));// && ; //verify that random name doesn't exist
 		free(fullPath);
 		store(si,tempname,"w");
 
@@ -55,18 +67,24 @@ void cmd_stou(session_info_t *si, char *arg) {
 }
 
 void cmd_stor(session_info_t *si, char *cmd) {
+        if (perm_neg_check (si, cmd) == -1)
+                return;
+
 	store(si,cmd,"w");
 	return;
 }
 
 void cmd_appe(session_info_t *si, char *cmd) {
+       if (perm_neg_check (si, cmd) == -1)
+                return;
+
 	store(si,cmd,"a");
 	return;
 }
 
 void store(session_info_t *si, char *cmd, char *purp) {
 
-  int pathCheck;
+
 	struct timeval timeout;
 	fd_set rfds;
 	FILE *storfile;
@@ -74,51 +92,6 @@ void store(session_info_t *si, char *cmd, char *purp) {
 	char buffer[BUFFSIZE];
 
 
-	//Determine if the pathname argument is correct and allowed.
-	if ((pathCheck = check_futer_file(si->cwd, cmd)) == -1) {
-	  send_mesg_450 (si->c_sfd);
-	  close(si->d_sfd);
-	  si->d_sfd = 0;
-	  return;
-	} else if (pathCheck == -2) {
-	  //improper return code, REDO
-	  send_mesg_553 (si->c_sfd);
-	  close(si->d_sfd);
-	  si->d_sfd = 0;
-	  return;
-	} else if (pathCheck == -3) {
-	  send_mesg_553 (si->c_sfd);
-	  close(si->d_sfd);
-	  si->d_sfd = 0;
-	  return;
-	}
-
-
-	//if client is anonymous or they haven't logged in, they don't
-	//have permission to run this command
-	if (si->logged_in == false || strcmp(si->user,"anonymous") == 0) {
-		char *permdeny = "550 Permission denied.\n";
-		send_all(si->c_sfd,(uint8_t*)permdeny,strlen(permdeny));
-		close(si->d_sfd);
-		si->d_sfd = 0;
-		return;
-	}
-
-
-	/* Merge all pathname fragments to create a single pathname to use with
-	 * fopen(). */
-	char *fullPath;
-	if ((fullPath = merge_paths(si->cwd, cmd, NULL)) == NULL) {
-	  send_mesg_553 (si->c_sfd);
-	  close(si->d_sfd);
-	  si->d_sfd = 0;
-	  return;
-	}
-	printf("fullPath: %s\n",fullPath);
-	if ((storfile = fopen(fullPath,purp)) == NULL) {
-	  fprintf (stderr, "%s: fopen: %s\n", __FUNCTION__, strerror (errno));
-	}
-	free(fullPath);
 	//send positive prelimitary reply
 	char *transferstart = "150 Opening ";
 	char *middle = " mode data connection for ";
@@ -141,6 +114,23 @@ void store(session_info_t *si, char *cmd, char *purp) {
 		return;
 	}
 
+
+	/* Merge all pathname fragments to create a single pathname to use with
+	 * fopen(). */
+	char *fullPath;
+	if ((fullPath = merge_paths(si->cwd, cmd, NULL)) == NULL) {
+	  cleanup_stor_recv (si, NULL, 451);
+	  return;
+	}
+	printf("fullPath: %s\n",fullPath);
+	if ((storfile = fopen(fullPath,purp)) == NULL) {
+	  fprintf (stderr, "%s: fopen: %s\n", __FUNCTION__, strerror (errno));
+	  free (fullPath);
+	  cleanup_stor_recv (si, NULL, 451);
+	}
+	free(fullPath);
+
+
 	while(si->cmd_abort == false && rt != 0) {
 		FD_ZERO(&rfds);
 		FD_SET(si->d_sfd,&rfds);
@@ -151,6 +141,8 @@ void store(session_info_t *si, char *cmd, char *purp) {
 			if (errno == EINTR)
 				continue;
 			fprintf (stderr, "%s: select: %s\n", __FUNCTION__, strerror (errno));
+			cleanup_stor_recv (si, storfile, 451);
+                        return;
 		}
 		//check for timeout.
 		if (sr == 0)
@@ -161,8 +153,6 @@ void store(session_info_t *si, char *cmd, char *purp) {
 		       if ((rt = recv(si->d_sfd,buffer,BUFFSIZE,0)) > 0) {
 		    	   fwrite(buffer,sizeof(char),rt,storfile);
 		       }
-
-
 		}
 	}
 
@@ -176,8 +166,66 @@ void store(session_info_t *si, char *cmd, char *purp) {
 	}
 
 	//close file and data connection
-	fclose(storfile);
-	close(si->d_sfd);
-	si->d_sfd = 0;
+	cleanup_stor_recv (si, storfile, 0);
 	return;
 }
+
+
+/******************************************************************************
+ * Determine if the STOR or APPE argument should be permanently rejected.
+ *
+ * Arguments:
+ *     si -
+ *   path - The pathname argument passed to the command function.
+ *
+ * Return values:
+ *   0    Accept the filename argument.
+ *  -1    Reject the filename argument.
+ *****************************************************************************/
+static int perm_neg_check (session_info_t *si, const char *path)
+{
+	  int pathCheck;
+        //if client is anonymous or they haven't logged in, they don't
+	//have permission to run this command
+	if (si->logged_in == false || strcmp(si->user,"anonymous") == 0) {
+		char *permdeny = "550 Permission denied.\n";
+		send_all(si->c_sfd,(uint8_t*)permdeny,strlen(permdeny));
+		close(si->d_sfd);
+		si->d_sfd = 0;
+		return -1;
+	}
+
+	//Determine if the pathname argument should be accepted.
+	if ((pathCheck = check_futer_file(si->cwd, path, false)) == -1) {
+	  cleanup_stor_recv (si, NULL, 450);
+	  return -1;
+	} else if (pathCheck == -2) {
+	  cleanup_stor_recv (si, NULL, 553);
+	  return -1;
+	} else if (pathCheck == -3) {
+	  cleanup_stor_recv (si, NULL, 553);
+	  return -1;
+	}
+
+	return 0;
+}
+
+/******************************************************************************
+ * cleanup_stor_recv - see cmd_stor.h
+ *****************************************************************************/
+void cleanup_stor_recv (session_info_t *si, FILE *fp,  int errcode)
+{
+  if (errcode == 451) {
+    send_mesg_451 (si->c_sfd);
+  } else if (errcode == 553) {
+    send_mesg_553 (si->c_sfd);
+  } else if (errcode == 450) {
+    send_mesg_450 (si->c_sfd);
+  }
+
+  if (fp != NULL)
+    fclose (fp);
+  close (si->d_sfd);
+  si->d_sfd = 0;
+}
+
