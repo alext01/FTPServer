@@ -12,6 +12,7 @@
  ***************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <dirent.h>
 #include <errno.h>
 #include <string.h>
@@ -22,9 +23,13 @@
 #include <time.h>
 
 #include "filemanip.h"
+#include "net.h"
 #include "path.h"
+#include "response.h"
+#include "session.h"
 
 #define MAX_FDATSZ 4096
+#define LIST_OUTPUT_MAX 4096
 
 char fileBuff[MAX_FDATSZ];
 
@@ -41,7 +46,7 @@ FILE * openFile(char * fileName, char * path, char * purp){
   return fp;
 }
 
-int closeFile(FILE *fp){
+/*int closeFile(FILE *fp){
   int errchk;
   errno = 0;
 
@@ -51,7 +56,7 @@ int closeFile(FILE *fp){
     return -1;
   }
   return 0;
-}
+  }*/
 
 long int fSzCount(FILE * fp){
   long int fileSZ = 0;
@@ -103,77 +108,132 @@ void writeFile(FILE * fp, long int datSZ){
 }
 
 
-int cmd_list (const char *cwd, const char *argpath, int detail)
+void cmd_list_nlst (session_info_t *si, const char *arg, bool detail)
 {
   char *fullpath;
 
+  char *noAccess;
+  char *transferStart;
+  char *noConnection;
+  
+
+ if (si->logged_in == false) {
+    noAccess = "550 - Access denied.\n";
+    send_all(si->c_sfd, (uint8_t *)noAccess, strlen(noAccess));
+    return;
+  }
+
   //Determine if the file is a directory.
-  if (!check_dir_exist (cwd, argpath))
-    return false;
+  if (!check_dir_exist (si->cwd, arg)) {
+    send_mesg_553 (si->c_sfd);
+    return;
+  }
+
+  transferStart = "150 Here comes the directory listing.\n";
+  send_all(si->c_sfd,(uint8_t*)transferStart,strlen(transferStart));
+
+  if (si->d_sfd == 0) {
+    noConnection = "425 - Cannot open data connection; please use the PORT or PASV command first.\n";
+    send_all(si->c_sfd, (uint8_t *)noConnection, strlen(noConnection));
+    return;
+  }
 
   //Create a single pathname to the directory from the pathname fragments.
-  if ((fullpath = merge_paths (cwd, argpath, NULL)) == NULL)
-    return false;
-  
-  listDirect (fullpath, detail);
-  return 1;
+  if ((fullpath = merge_paths (si->cwd, arg, NULL)) == NULL) {
+    send_mesg_451 (si->c_sfd);
+    close (si->d_sfd);
+    si->d_sfd = 0;
+    return;
+  }
+
+  listDirect (si, fullpath, detail);
+  free (fullpath);
+  return;
 }
 
-char * listDirect (char * curloc, int detail){
-  char * directory;
-  DIR *dp;  //directory pointer
-  struct dirent *ep;
-  
-  //if (check_dir_exist (
+
+void listDirect (session_info_t *si, char * fullpath, bool detail){
+  //char * directory;
+  DIR *dp;                       //directory pointer
+  struct dirent *ep;             //entry pointer
+  char output[LIST_OUTPUT_MAX];  //output buffer
+
+  char *aborted;
+  char *success;
+
+  if ((dp = opendir(fullpath)) == NULL) {
+    fprintf (stderr, "%s: opendir: %s\n", __FUNCTION__, strerror (errno));
+    send_mesg_451 (si->c_sfd);
+    close (si->d_sfd);
+    si->d_sfd = 0;
+    return;
+  }
+
+  //output = (char *)calloc(4096, sizeof(char));
+  //if(output == NULL){
+  // fprintf(stderr, "Error in allocating memory for output in list.");
+  // return NULL;
+  //}
+
   errno = 0;
-  dp = opendir(curloc);
-
-  if(dp == NULL){
-    fprintf(stderr, "Error: %s\n", strerror(errno));
-    return NULL;
-  }
-
-  int outSize = 4096;
-  char * output;
-  output = (char *)calloc(4096, sizeof(char));
-  if(output == NULL){
-    fprintf(stderr, "Error in allocating memory for output in list.");
-    return NULL;
-  }
-
-  while( (ep = readdir(dp)) ){
+  bool initial = true;
+  output[0] = '\0';
+  while(((ep = readdir(dp)) != NULL) && (si->cmd_abort == false)){
+    //Do not list hidden files, current directory, or parent directory.
     if(ep->d_name[0] != '.'){
-      if(detail == 1){
-	char * pathNfile = malloc(strlen(curloc) + strlen(ep->d_name) + 2);
-	strcpy(pathNfile, curloc);
-	strcat(pathNfile, "/");
-	strcat(pathNfile, ep->d_name);
+      if (initial)
+	initial = false;
+      else
+	strcat (output, "\n");
 
-	detailList(ep, pathNfile, &output);
-	free(pathNfile);
+      if(detail == true){
+	//char * pathNfile = malloc(strlen(curloc) + strlen(ep->d_name) + 2);
+	//	strcpy(pathNfile, curloc);
+	//	strcat(pathNfile, "/");
+	//strcat(pathNfile, ep->d_name);
+
+	//detailList(ep, pathNfile, &output);
+	//free(pathNfile);
       }
 
       strcat(output, ep->d_name);
-      if(strlen(output) >= (outSize-50)){
-	outSize += 4096;
-	output = (char *) realloc(output, outSize * sizeof(char));
-      }
-    }
-
-    //send output
-
-    free(output);
-
-    //checks to see if its and error or eof
-    if(ep == NULL){
-      if(errno){
-	fprintf(stderr, "Error: %s\n", strerror(errno));
-	return NULL;
-      }
+      //if(strlen(output) >= (outSize-50)){
+      //	outSize += 4096;
+      //	output = (char *) realloc(output, outSize * sizeof(char));
     }
   }
 
-  return directory;
+  //checks to see if its and error or eof
+  if(ep == NULL){
+    if(errno){
+      fprintf(stderr, "%s: readdir: %s\n", __FUNCTION__, strerror(errno));
+      send_mesg_451 (si->c_sfd);
+      close (si->d_sfd);
+      si->d_sfd = 0;
+      closedir (dp);
+      return;
+    }
+  }
+
+  send_all (si->c_sfd, (uint8_t*)output, strlen (output));
+    
+  if (si->cmd_abort == true) {
+    printf ("sending code 426\n");
+    aborted = "426 - Connection close; transfer aborted.\n";
+    send_all(si->c_sfd, (uint8_t *)aborted, strlen(aborted));
+    si->cmd_abort = false;
+  } else {
+    printf ("sending code 226\n");
+    success = "226 - Closing data connection; requested file action successful.\n";
+    send_all(si->c_sfd, (uint8_t *)success, strlen(success));
+  }
+
+  if (closedir (dp) == -1)
+    fprintf (stderr, "%s: closedir: %s\n", __FUNCTION__, strerror (errno));
+  
+  close (si->d_sfd);
+  si->d_sfd = 0;
+  return;
 }
 
 
@@ -211,14 +271,16 @@ void detailList(struct dirent* dirInfo, char * filepath, char ** output){
   (fileStat.st_mode & S_IXOTH) ? strcat(*output,"x  "):strcat(*output,"-  ");
 
   
-  sprintf( (*output) + strlen(*output), "%zu   %d   %d   %lld   %s  ", fileStat.st_nlink, fileStat.st_uid, fileStat.st_gid, (unsigned long long)fileStat.st_size, ctime(&fileStat.st_mtime) );
+  sprintf( (*output) + strlen(*output), "%zu   %d   %d   %lld   %s\n",
+	   fileStat.st_nlink, fileStat.st_uid, fileStat.st_gid,
+	   (unsigned long long)fileStat.st_size, ctime(&fileStat.st_mtime));
   // printf("Mode:                  %lo (octal)\n", (unsigned long) fileStat.st_mode);
-
+  return;
 }
 
 
 int makeDir(char * filepath){
-  mode_t permissions;
+  mode_t permissions = 0;
   permissions = permissions | S_IRUSR;
   permissions = permissions | S_IWUSR;
   permissions = permissions | S_IRGRP;

@@ -17,7 +17,7 @@ main: 	config.o cmdstrparser.o cmdswitch.o ctrlthread.o main.o md5.o net.o respo
 
 main.o:		main.c config.h ctrlthread.h net.h servercmd.h
 
-cmdswitch.o:	cmd_switch.c cmd_switch.h cmd_string_parser.h net.h session.h users.h cmd_misc.h users.h net.h cmd_retr.h
+cmdswitch.o:	cmd_switch.c cmd_switch.h cmd_string_parser.h net.h session.h users.h cmd_misc.h users.h net.h cmd_retr.h filemanip.h
 		$(CC) $(CFLAGS) -c -o $@ $<
 
 cmdstrparser.o:	cmd_string_parser.c cmd_string_parser.h
@@ -48,7 +48,7 @@ cmd_stor.o: 	cmd_stor.c cmd_stor.h net.h path.h session.h
 
 cmd_stor.o: 	cmd_stor.c cmd_stor.h net.h path.h response.h session.h
 
-filemanip.o: 	filemanip.c filemanip.h common.h path.h
+filemanip.o: 	filemanip.c filemanip.h common.h path.h net.h response.h session.h
 
 cmd_misc.o: 	cmd_misc.c cmd_misc.h net.h session.h
 

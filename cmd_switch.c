@@ -34,6 +34,7 @@
 
 //C Library Reference(s)
 #include <ctype.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,6 +46,7 @@
 #include "cmd_stor.h"
 #include "cmd_string_parser.h"
 #include "cmd_switch.h"
+#include "filemanip.h"
 #include "net.h"
 #include "session.h"
 #include "users.h"
@@ -234,6 +236,9 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
+	//Command NLST Invoked
+	cmd_list_nlst (si, arg, true);
+
       /* HELP [<SP> <string>] <CRLF> */
       } else if (strcmp(cmd, "HELP") == 0) {
 
@@ -348,7 +353,8 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
-    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+	//Command NLST Invoked
+	cmd_list_nlst (si, arg, false);
 
       /* SITE <SP> <string> <CRLF> */
       } else if (strcmp(cmd, "SITE") == 0) {
@@ -364,7 +370,8 @@ void *command_switch(void *param)
 	//Debug Print
     	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
-    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+    	//Command NLST Invoked
+	cmd_syst (si);
 
       /* STAT [<SP> <pathname>] <CRLF> */
       } else if (strcmp(cmd, "STAT") == 0) {

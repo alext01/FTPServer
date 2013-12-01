@@ -77,3 +77,9 @@ void cmd_mode(session_info_t *si, char *arg) {
 	send_all(si->c_sfd,(uint8_t*)fail,strlen(fail));
 	return;
 }
+
+//Send the system type on the control connection.
+void cmd_syst (session_info_t *si) {
+  char *system = "215 UNIX Type: L8\n";
+  send_all (si->c_sfd, (uint8_t*)system, strlen (system));
+}

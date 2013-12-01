@@ -21,6 +21,7 @@
 #include <errno.h>
 
 #include "common.h"
+#include "session.h" //Required for session_info_t in function prototype.
 
 /*********************************************************
  *
@@ -91,16 +92,16 @@ int closeFile(FILE * fp);
 
 /**********************************************************
  *
- * cmd_list
+ * cmd_list_nlist
  * Arguments: const char * -
  *            const char * - argument path
- *            int - determines if to print details or not
- *                  1 for yes, 0 for no.
- * Return: int - false if failed to open file
+ *            bool - determines if to print details or not
+ *                  true for yes, false for no.
+ * Return: void
  * Description: 
  *
  *********************************************************/
-int cmd_list(const char *cwd, const char *argpath, int detail);
+void cmd_list_nlst (session_info_t *si, const char *argpath, bool detail);
 
 /**********************************************************
  *
@@ -108,12 +109,12 @@ int cmd_list(const char *cwd, const char *argpath, int detail);
  * Argument: char * - current location
  *           int - determines if to print details or not
  *                  1 for yes, 0 for no.
- * Return: char * - return a string of directories
+ * Return: void
  * Description: List out all files and folders in
  *              the current directory.
  *
  *********************************************************/
-char * listDirect(char * curloc, int detail);
+void listDirect(session_info_t *si, char *fullpath, bool detail);
 
 /*********************************************************
  *
