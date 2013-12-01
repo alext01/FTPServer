@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 #include "filemanip.h"
 #include "path.h"
@@ -101,7 +102,7 @@ void writeFile(FILE * fp, long int datSZ){
 }
 
 
-int cmd_list (const char *cwd, const char *argpath)
+int cmd_list (const char *cwd, const char *argpath, int detail)
 {
   char *fullpath;
 
@@ -113,15 +114,15 @@ int cmd_list (const char *cwd, const char *argpath)
   if ((fullpath = merge_paths (cwd, argpath, NULL)) == NULL)
     return false;
   
-  listDirect (fullpath);
+  listDirect (fullpath, detail);
   return 1;
 }
 
-char * listDirect (char * curloc){
+char * listDirect (char * curloc, int detail){
   char * directory;
   DIR *dp;  //directory pointer
   struct dirent *ep;
-
+  
   //if (check_dir_exist (
   errno = 0;
   dp = opendir(curloc);
@@ -130,17 +131,27 @@ char * listDirect (char * curloc){
     fprintf(stderr, "Error: %s\n", strerror(errno));
   }
 
+  char * output;
+  output = (char *)calloc(4096, sizeof(char));
+
   while( (ep = readdir(dp)) ){
     if(ep->d_name[0] != '.'){
-      char * pathNfile = malloc(strlen(curloc) + strlen(ep->d_name) + 2);
-      strcpy(pathNfile, curloc);
-      strcat(pathNfile, "/");
-      strcat(pathNfile, ep->d_name);
+      if(detail == 1){
+	char * pathNfile = malloc(strlen(curloc) + strlen(ep->d_name) + 2);
+	strcpy(pathNfile, curloc);
+	strcat(pathNfile, "/");
+	strcat(pathNfile, ep->d_name);
 
-      detailList(ep, pathNfile);
-      puts(ep->d_name);
-      free(pathNfile);
+	detailList(ep, pathNfile, output);
+	free(pathNfile);
+      }
+
+      strcat(output, ep->d_name);
     }
+
+    //send output
+
+    free(output);
 
     //checks to see if its and error or eof
     if(ep == NULL){
@@ -154,7 +165,7 @@ char * listDirect (char * curloc){
   return directory;
 }
 
-void detailList(struct dirent* dirInfo, char * filepath){
+void detailList(struct dirent* dirInfo, char * filepath, char * output){
   struct stat fileStat;
   int errchk;
   errno = 0;
@@ -168,16 +179,28 @@ void detailList(struct dirent* dirInfo, char * filepath){
   }
 
   if(dirInfo->d_type == DT_DIR){
-    // append d
+    strcat(output, "d");
   }
   else if(dirInfo->d_type == DT_LNK){
-    // append l
+    strcat(output, "l");
   }
   else{
-    // append -
+    strcat(output, "-");
   }
 
-  printf("Mode:                  %lo (octal)\n", (unsigned long) fileStat.st_mode);
+  (fileStat.st_mode & S_IRUSR) ? strcat(output,"r"):strcat(output,"-");
+  (fileStat.st_mode & S_IWUSR) ? strcat(output,"w"):strcat(output,"-");
+  (fileStat.st_mode & S_IXUSR) ? strcat(output,"x"):strcat(output,"-");
+  (fileStat.st_mode & S_IRGRP) ? strcat(output,"r"):strcat(output,"-");
+  (fileStat.st_mode & S_IWGRP) ? strcat(output,"w"):strcat(output,"-");
+  (fileStat.st_mode & S_IXGRP) ? strcat(output,"x"):strcat(output,"-");
+  (fileStat.st_mode & S_IROTH) ? strcat(output,"r"):strcat(output,"-");
+  (fileStat.st_mode & S_IWOTH) ? strcat(output,"w"):strcat(output,"-");
+  (fileStat.st_mode & S_IXOTH) ? strcat(output,"x  "):strcat(output,"-  ");
+
+  
+  sprintf(output + strlen(output), "%zu  %d   %d  %zu ", fileStat.st_nlink, fileStat.st_uid, fileStat.st_gid, fileStat.st_size);
+  // printf("Mode:                  %lo (octal)\n", (unsigned long) fileStat.st_mode);
 
 }
 

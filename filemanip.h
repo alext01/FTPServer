@@ -94,22 +94,26 @@ int closeFile(FILE * fp);
  * cmd_list
  * Arguments: const char * -
  *            const char * - argument path
+ *            bool - determines if to print details or not
+ *                   TRUE for yes, FALSE for no.
  * Return: int - false if failed to open file
  * Description: 
  *
  *********************************************************/
-int cmd_list(const char *cwd, const char *argpath);
+int cmd_list(const char *cwd, const char *argpath, int detail);
 
 /**********************************************************
  *
  * listDirect
  * Argument: char * - current location
+ *           bool - determines if to print details or not
+ *                  TRUE for yes, FALSE for no.
  * Return: char * - return a string of directories
  * Description: List out all files and folders in
  *              the current directory.
  *
  *********************************************************/
-char * listDirect(char * curloc);
+char * listDirect(char * curloc, int detail);
 
 /*********************************************************
  *
@@ -119,7 +123,7 @@ char * listDirect(char * curloc);
  * Description: Display detailed information about files
  *
  *********************************************************/
-void detailList(struct dirent * dirInfo, char * filepath);
+void detailList(struct dirent * dirInfo, char * filepath, char * output);
 
 /*********************************************************
  *
