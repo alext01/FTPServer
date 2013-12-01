@@ -284,7 +284,6 @@ int makeDir(char * filepath){
   permissions = permissions | S_IRUSR;
   permissions = permissions | S_IWUSR;
   permissions = permissions | S_IRGRP;
-  permissions = permissions | S_IROTH;
 
   errno = 0;
 
