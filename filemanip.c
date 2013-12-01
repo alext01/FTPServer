@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <inttypes.h>
+#include <time.h>
 
 #include "filemanip.h"
 #include "path.h"
@@ -129,10 +130,16 @@ char * listDirect (char * curloc, int detail){
 
   if(dp == NULL){
     fprintf(stderr, "Error: %s\n", strerror(errno));
+    return NULL;
   }
 
+  int outSize = 4096;
   char * output;
   output = (char *)calloc(4096, sizeof(char));
+  if(output == NULL){
+    fprintf(stderr, "Error in allocating memory for output in list.");
+    return NULL;
+  }
 
   while( (ep = readdir(dp)) ){
     if(ep->d_name[0] != '.'){
@@ -142,11 +149,15 @@ char * listDirect (char * curloc, int detail){
 	strcat(pathNfile, "/");
 	strcat(pathNfile, ep->d_name);
 
-	detailList(ep, pathNfile, output);
+	detailList(ep, pathNfile, &output);
 	free(pathNfile);
       }
 
       strcat(output, ep->d_name);
+      if(strlen(output) >= (outSize-50)){
+	outSize += 4096;
+	output = (char *) realloc(output, outSize * sizeof(char));
+      }
     }
 
     //send output
@@ -165,7 +176,8 @@ char * listDirect (char * curloc, int detail){
   return directory;
 }
 
-void detailList(struct dirent* dirInfo, char * filepath, char * output){
+
+void detailList(struct dirent* dirInfo, char * filepath, char ** output){
   struct stat fileStat;
   int errchk;
   errno = 0;
@@ -179,27 +191,27 @@ void detailList(struct dirent* dirInfo, char * filepath, char * output){
   }
 
   if(dirInfo->d_type == DT_DIR){
-    strcat(output, "d");
+    strcat(*output, "d");
   }
   else if(dirInfo->d_type == DT_LNK){
-    strcat(output, "l");
+    strcat(*output, "l");
   }
   else{
-    strcat(output, "-");
+    strcat(*output, "-");
   }
 
-  (fileStat.st_mode & S_IRUSR) ? strcat(output,"r"):strcat(output,"-");
-  (fileStat.st_mode & S_IWUSR) ? strcat(output,"w"):strcat(output,"-");
-  (fileStat.st_mode & S_IXUSR) ? strcat(output,"x"):strcat(output,"-");
-  (fileStat.st_mode & S_IRGRP) ? strcat(output,"r"):strcat(output,"-");
-  (fileStat.st_mode & S_IWGRP) ? strcat(output,"w"):strcat(output,"-");
-  (fileStat.st_mode & S_IXGRP) ? strcat(output,"x"):strcat(output,"-");
-  (fileStat.st_mode & S_IROTH) ? strcat(output,"r"):strcat(output,"-");
-  (fileStat.st_mode & S_IWOTH) ? strcat(output,"w"):strcat(output,"-");
-  (fileStat.st_mode & S_IXOTH) ? strcat(output,"x  "):strcat(output,"-  ");
+  (fileStat.st_mode & S_IRUSR) ? strcat(*output,"r"):strcat(*output,"-");
+  (fileStat.st_mode & S_IWUSR) ? strcat(*output,"w"):strcat(*output,"-");
+  (fileStat.st_mode & S_IXUSR) ? strcat(*output,"x"):strcat(*output,"-");
+  (fileStat.st_mode & S_IRGRP) ? strcat(*output,"r"):strcat(*output,"-");
+  (fileStat.st_mode & S_IWGRP) ? strcat(*output,"w"):strcat(*output,"-");
+  (fileStat.st_mode & S_IXGRP) ? strcat(*output,"x"):strcat(*output,"-");
+  (fileStat.st_mode & S_IROTH) ? strcat(*output,"r"):strcat(*output,"-");
+  (fileStat.st_mode & S_IWOTH) ? strcat(*output,"w"):strcat(*output,"-");
+  (fileStat.st_mode & S_IXOTH) ? strcat(*output,"x  "):strcat(*output,"-  ");
 
   
-  sprintf(output + strlen(output), "%zu  %d   %d  %zu ", fileStat.st_nlink, fileStat.st_uid, fileStat.st_gid, fileStat.st_size);
+  sprintf( (*output) + strlen(*output), "%zu   %d   %d   %lld   %s  ", fileStat.st_nlink, fileStat.st_uid, fileStat.st_gid, (unsigned long long)fileStat.st_size, ctime(&fileStat.st_mtime) );
   // printf("Mode:                  %lo (octal)\n", (unsigned long) fileStat.st_mode);
 
 }

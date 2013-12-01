@@ -123,7 +123,7 @@ char * listDirect(char * curloc, int detail);
  * Description: Display detailed information about files
  *
  *********************************************************/
-void detailList(struct dirent * dirInfo, char * filepath, char * output);
+void detailList(struct dirent * dirInfo, char * filepath, char ** output);
 
 /*********************************************************
  *
