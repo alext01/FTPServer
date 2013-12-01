@@ -288,7 +288,12 @@ int makeDir(char * filepath){
   errno = 0;
 
   if( (mkdir(filepath, permissions)) == -1){
-    fprintf(stderr, "Error encountered while making directory: %s\n", strerror(errno));
+    fprintf(stderr, "%s: mkdir: %s\n", __FUNCTION__, strerror(errno));
+    
+    send_mesg_550(c_sfd);
+    close(si->d_sfd);
+    si->d_sfd = 0;
+
     return -1;
   }
 
