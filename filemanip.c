@@ -156,7 +156,7 @@ void listDirect (session_info_t *si, char * fullpath, bool detail){
   DIR *dp;                       //directory pointer
   struct dirent *ep;             //entry pointer
   char *output;                  //output buffer
-
+  int outSize = 4096;
   char *aborted;
   char *success;
 
@@ -168,7 +168,7 @@ void listDirect (session_info_t *si, char * fullpath, bool detail){
     return;
   }
 
-  output = (char *)calloc(4096, sizeof(char));
+  output = calloc(outSize, sizeof(*output));
   if(output == NULL){
     fprintf(stderr, "Error in allocating memory for output in list.");
     send_mesg_451 (si->c_sfd);
@@ -182,19 +182,22 @@ void listDirect (session_info_t *si, char * fullpath, bool detail){
     //Do not list hidden files, current directory, or parent directory.
     if(ep->d_name[0] != '.'){
       if(detail == true){
-	//char * pathNfile = malloc(strlen(curloc) + strlen(ep->d_name) + 2);
-	//strcpy(pathNfile, curloc);
-	//strcat(pathNfile, "/");
-	//strcat(pathNfile, ep->d_name);
-
 	detailList(ep, fullpath, &output);
-	//free(pathNfile);
       } else {
 	strcat(output, ep->d_name);
 	strcat(output, "\r\n");
-      //if(strlen(output) >= (outSize-50)){
-      //	outSize += 4096;
-      //	output = (char *) realloc(output, outSize * sizeof(char));
+      }
+
+      if(strlen(output) >= (outSize-1000)){
+      	outSize += 4096;
+      	if ((output = realloc(output, outSize * sizeof (*output))) == NULL) {
+	  fprintf (stderr, "%s: realloc: %s\n", __FUNCTION__,
+		   "could not allocate the required space");
+	  send_mesg_451 (si->c_sfd);
+	  close (si->d_sfd);
+	  si->d_sfd = 0;
+	  return;
+	}
       }
     }
   }
@@ -215,12 +218,10 @@ void listDirect (session_info_t *si, char * fullpath, bool detail){
   free (output);
 
   if (si->cmd_abort == true) {
-    printf ("sending code 426\n");
     aborted = "426 - Connection close; transfer aborted.\n";
     send_all(si->c_sfd, (uint8_t *)aborted, strlen(aborted));
     si->cmd_abort = false;
   } else {
-    printf ("sending code 226\n");
     success = "226 - Closing data connection; requested file action successful.\n";
     send_all(si->c_sfd, (uint8_t *)success, strlen(success));
   }
@@ -235,9 +236,10 @@ void listDirect (session_info_t *si, char * fullpath, bool detail){
 
 
 void detailList(struct dirent* dirInfo, char * fullpath, char ** output){
-  char *time;
+  char time[20];
   struct stat fileStat;
   int errchk;
+  struct tm * timeinfo;
   errno = 0;
 
   char filename[strlen (fullpath) + 256];
@@ -253,12 +255,11 @@ void detailList(struct dirent* dirInfo, char * fullpath, char ** output){
     return;
   }
 
-  if ((time = ctime (&fileStat.st_mtime)) == NULL) {
-    fprintf (stderr, "%s: ctime: %s\n", __FUNCTION__, strerror (errno));
+  if ((timeinfo = gmtime (&fileStat.st_mtime)) == NULL) {
+    fprintf (stderr, "%s: gmtime: error with function call\n", __FUNCTION__);
     return;
   }
-
-  time[strlen (time) - 1] = '\0';
+  strftime (time, 20, "%b %d %Y", timeinfo);
 
   if(dirInfo->d_type == DT_DIR){
     strcat(*output, "d");
@@ -284,8 +285,6 @@ void detailList(struct dirent* dirInfo, char * fullpath, char ** output){
   sprintf( (*output) + strlen(*output), " %zu   %d   %d   %lld   %s   %s\r\n",
 	   fileStat.st_nlink, fileStat.st_uid, fileStat.st_gid,
 	   (unsigned long long)fileStat.st_size, time, dirInfo->d_name);
-
-  printf ("%s\n", *output);
   // printf("Mode:                  %lo (octal)\n", (unsigned long) fileStat.st_mode);
   return;
 }
