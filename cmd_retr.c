@@ -1,30 +1,33 @@
-//=============================================================================
-// Assignment #03 - FTP Server
-//=============================================================================
-// Date:        November 2013
-// Course:      CMPT 361 - Introduction to Networks
-// Instructor:  Dr. Nicholas M. Boers
-// Students:    Evan Myers
-//              Justin Slind
-//              Alex Tai
-//              James Yoo
-//=============================================================================
-// Filename:
-//     cmd_retr.c
-//=============================================================================
-// Associated Header File(s):
-//   > cmd_retr.h
-//   > net.h
-//   > session.h
-//=============================================================================
-// Brief Description:
-//     
-//     
-//=============================================================================
-// Code Citation(s):
-//     * http://www.cplusplus.com/reference/
-//     * http://www.stackoverflow.com/
-//=============================================================================
+//===============================================================================
+//  Assignment #03 - FTP Server
+//===============================================================================
+//  Date:         November 2013
+//  Course:       CMPT 361 - Introduction to Networks
+//  Instructor:   Dr. Nicholas M. Boers
+//  Students:     Evan Myers
+//                Justin Slind
+//                Alex Tai
+//                James Yoo
+//===============================================================================
+//  Filename:
+//    cmd_retr.c
+//===============================================================================
+//  Associated Header File(s):
+//    > cmd_retr.h
+//    > net.h
+//    > path.h
+//    > response.h
+//    > session.h
+//===============================================================================
+//  Overview:
+//    
+//    
+//    
+//===============================================================================
+//  Code Citation(s):
+//    > http://www.cplusplus.com/reference/
+//    > http://www.stackoverflow.com/
+//===============================================================================
 
 
 
@@ -53,24 +56,24 @@
 
 
 
-//=============================================================================
-// Function Name:
-//   void command_retrieve(session_info_t *si, char *path)
-//=============================================================================
-// Brief Description:
-//   
-//=============================================================================
-// List of Variables:
-//   {noAccess}
-//     > Type character pointer
-//     > 
-//   {noConnection}
-//     > Type character pointer
-//     > 
-//=============================================================================
-// Related Citation(s):
-//   > N/A
-//=============================================================================
+//===============================================================================
+//  Function Name:=
+//    command_retrieve(session_info_t *si, char *path)
+//===============================================================================
+//  Description:
+//    
+//===============================================================================
+//  Variable List (in alphabetical order):
+//    {noAccess}
+//      > Type character pointer
+//      > 
+//    {noConnection}
+//      > Type character pointer
+//      > 
+//===============================================================================
+//  Related Citation(s):
+//    > N/A
+//===============================================================================
 
 void command_retrieve(session_info_t *si, char *path)
 { //BEGIN function 'command_retrieve'
@@ -83,7 +86,7 @@ void command_retrieve(session_info_t *si, char *path)
 
   bool fileCheck;
 
-  int retVal = BUFFSIZE, //Evans note: needs to be initialized, not 0 or uninit.
+  int retVal, //Evans note: needs to be initialized, not 0 or uninit.
       selVal;
 
   char buffer[BUFFSIZE];
@@ -140,12 +143,14 @@ void command_retrieve(session_info_t *si, char *path)
 
   if ((retrFile = fopen(fullPath, "r")) == NULL) {
     fprintf (stderr, "%s: fopen: %s\n", __FUNCTION__, strerror (errno));
-    free (fullPath);
+    free(fullPath);
     send_mesg_451 (si->c_sfd);
     close (si->d_sfd);
     si->d_sfd = 0;
   }
+
   free(fullPath);
+  retVal = BUFFSIZE;
 
   while ((si->cmd_abort == false) && (retVal != 0)) {
     FD_ZERO(&wfds);
@@ -162,8 +167,8 @@ void command_retrieve(session_info_t *si, char *path)
       } //END statement 'if'
 
       fprintf(stderr, "%s: select: %s\n", __FUNCTION__, strerror(errno));
-      send_mesg_451 (si->c_sfd);
-      close (si->d_sfd);
+      send_mesg_451(si->c_sfd);
+      close(si->d_sfd);
       si->d_sfd = 0;
       return;
 
@@ -173,22 +178,23 @@ void command_retrieve(session_info_t *si, char *path)
 
     if (FD_ISSET(si->d_sfd, &wfds)) {
 
-      if ((retVal = fread(buffer, sizeof (*buffer), BUFFSIZE, retrFile)) == 0) {
+      if ((retVal = fread(buffer, sizeof(*buffer), BUFFSIZE, retrFile)) == 0) {
+	
 	if (ferror (retrFile)) {
 	  fprintf (stderr, "%s: fread: error while processing\n", __FUNCTION__);
-	  send_mesg_451 (si->c_sfd);
-	  close (si->d_sfd);
+	  send_mesg_451(si->c_sfd);
+	  close(si->d_sfd);
 	  si->d_sfd = 0;
 	  return;
-	} else if (feof (retrFile)) {
+	} else if (feof(retrFile)) {
 	  continue;
 	} //END statement 'if-else'
 
       } //END statement 'if'
 
-      if (send_all (si->d_sfd, (uint8_t*)buffer, retVal) == -1) {
-	send_mesg_451 (si->c_sfd);
-	close (si->d_sfd);
+      if (send_all(si->d_sfd, (uint8_t *)buffer, retVal) == -1) {
+	send_mesg_451(si->c_sfd);
+	close(si->d_sfd);
 	si->d_sfd = 0;
 	return;
       } //END statement 'if'
