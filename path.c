@@ -165,19 +165,28 @@ char *merge_paths (const char *cwd, char *argpath, const int *reserve)
 {
  //Concatenate the rootdir, cwd, and path argument relevant to the cwd.
   char *fullpath;
-  char *browserfix;
+  char *start;
 
   //String lengths required to malloc the fullpath string.
   int rootdir_strlen;
   int cwd_strlen;
   int arg_strlen;
+  int i = 0;
 
   if (argpath != NULL) {
-    if ((browserfix = strstr (argpath, " ")) != NULL) {
-      argpath = browserfix;
-      argpath++;
+    start = argpath;
+    char arg_temp[strlen (argpath) + 1];
+    while (*argpath != '\0') {
+      if (*argpath != ' ')
+	arg_temp[i++] = *argpath++;
+      else
+	argpath++;
     }
+    arg_temp[i] = '\0';
+    argpath = strcpy (start, arg_temp);
+    printf ("argpath = %s\n", argpath);
   }
+
 
   //Merge the absolute path. Proceed if the path is not absolute.
   if ((fullpath = merge_absolute (argpath, reserve)) != NULL)
