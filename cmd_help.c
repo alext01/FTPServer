@@ -124,10 +124,10 @@ int command_help(session_info_t *si, char *arg)
 
     int strLength;
 
-    char *argUnrecognized,
-         *cmdInfo,
-         *cmdLine,
-         *cmdUnimplemented;
+    char *cmdInfo,
+         *cmdLine;
+
+    const char *argUnrecognized = "501 - Syntax error, command unrecognized.\n";
 
     if ((cmdLine = (char *)calloc((CMD_STRING_LENGTH + 1), sizeof(*cmdLine))) == NULL) {
       return -1;
@@ -136,9 +136,6 @@ int command_help(session_info_t *si, char *arg)
     if ((cmdInfo = (char *)calloc((CMD_STRING_LENGTH + 1), sizeof(*cmdInfo))) == NULL) {
       return -1;
     } //END statement 'if'
-
-    argUnrecognized = "501 - Syntax error, command unrecognized.\n";
-    cmdUnimplemented = "502 - Command is not currently implemented.\n";
 
     if (strlen(arg) == MAX_CMD_SIZE) {
 
