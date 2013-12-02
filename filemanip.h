@@ -135,6 +135,8 @@ int detailList(struct dirent * dirInfo, char * filepath, char ** output);
  * Return: int - 0 if ran without errors, -1 if error
  *               was encountered. 
  * Description: Creates a directory
+ *
+ * Checked by: Evan Myers
  ********************************************************/
 int makeDir(session_info_t *si, char * filepath);
 

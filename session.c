@@ -85,13 +85,11 @@ int session(int c_sfd) {
 			       return -1;
 		        }
 
-			printf("rxed: %s\n",commandstr);
 			cmd_queue_ptr = addToQueue(commandstr, cmd_queue_ptr);
 		}
 
 		//if command is abort (ABOR) let the current thread know
 		if (strncasecmp(commandstr,"ABOR",4) == 0) {
-			printf("Abort was set\n");
 			sessioninfo.cmd_abort = true;
 			commandstr[0] = '\0';
 			char *abort = "226 Abort.\n";
@@ -109,7 +107,6 @@ int session(int c_sfd) {
 
 			strcpy(sessioninfo.cmd_string,commandstr);
 			commandstr[0] = '\0';
-			printf("Creating Command Thread\n");
 			if (pthread_create(&command_thread, &attr, &command_switch, (void*) &sessioninfo) == -1) {
 			        fprintf (stderr, "%s: pthread_create: %s\n", __FUNCTION__, strerror (errno));
 				freeQueue(cmd_queue_ptr);
@@ -119,7 +116,6 @@ int session(int c_sfd) {
 		}
 		//check if the command thread is done, if so, join
 		else if (sessioninfo.cmd_complete) {
-			printf("joining thread\n");
 			if (pthread_join(command_thread,NULL) == -1) {
 			        fprintf (stderr, "%s: pthread_join: %s\n", __FUNCTION__, strerror (errno));
 				freeQueue(cmd_queue_ptr);
@@ -149,7 +145,6 @@ int session(int c_sfd) {
 	                fprintf (stderr, "%s: close: %s\n", __FUNCTION__, strerror (errno));
 	}
 
-	printf("session finished\n");
 	freeQueue(cmd_queue_ptr);
 	pthread_attr_destroy(&attr);
 	return 0;

@@ -8,11 +8,26 @@
  * Description:
  *    The server begins and ends here. When a control connection is established
  *    with a client, control of all futer interactions between the server and
- *    this client is passed to the function control_thread().
+ *    this client is passed to the function control_thread() as a pthread.
  *
  * Acknowledgements:
  *    Evan - I have included my acknowledgements for working with pthreads in
  *           the file header of "ctrlthread.h" and "ctrlthread.c".
+ *
+ *    Evan - For debugging response code messages and orders, I have referred
+ *           to this webpage:   http://cr.yp.to/ftp.html
+ *
+ * Compatible programs:
+ *     -netcat (nc)
+ *     -ftp program
+ *     -filezilla
+ *     -web browser - tested with "Firefox 25.0: Mozilla Firefox for Ubuntu
+ *                    canonical - 1.0"
+ *     -others which have not been tested.
+ *
+ * Note:
+ *     Our server uses a server configuration file and a user file. These files
+ *     may be found with the names "ftp.conf" and "user.conf" respectively.
  *****************************************************************************/
 #include <errno.h>
 #include <pthread.h>
@@ -27,10 +42,6 @@
 #include "servercmd.h"
 
 
-#define FALSE 1
-#define TRUE 0
-
-
 /******************************************************************************
  * Global variables which each thread can access and/or modify.
  *****************************************************************************/
@@ -41,6 +52,7 @@
 pthread_mutex_t control_count_mutex = PTHREAD_MUTEX_INITIALIZER;
 int active_control_threads = 0;
 
+
 /******************************************************************************
  * Global variables which should only be read by functions that are not main().
  *****************************************************************************/
@@ -48,6 +60,7 @@ int active_control_threads = 0;
  * threads will terminate themselves after closing open sockets and freeing
  * heap memory. This variable is only modified by main(). */
 int shutdown_server = false;
+
 
 /* The root directory of the server. When a new control connection is accepted,
  * this is the current working directory of the client. The client will not be

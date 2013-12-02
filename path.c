@@ -173,6 +173,13 @@ char *merge_paths (const char *cwd, char *argpath, const int *reserve)
   int arg_strlen;
   int i = 0;
 
+
+  /* This block of code removes ' ' (space) characters from a path argument.
+   * These spaces appear in arguments sent by a web browser. Due to time
+   * constraints, we have not been able to determine if this is expected
+   * behavior. This solution will remove the ability to work with files 
+   * (including directories) that have space characters in their filename. If
+   * we had more development time this would not be the case. */
   if (argpath != NULL) {
     start = argpath;
     char arg_temp[strlen (argpath) + 1];
@@ -184,7 +191,6 @@ char *merge_paths (const char *cwd, char *argpath, const int *reserve)
     }
     arg_temp[i] = '\0';
     argpath = strcpy (start, arg_temp);
-    printf ("argpath = %s\n", argpath);
   }
 
 
@@ -204,6 +210,7 @@ char *merge_paths (const char *cwd, char *argpath, const int *reserve)
   rootdir_strlen = strlen (rootdir) + 1;
   cwd_strlen = strlen (cwd) + 1;
 
+  //Additional string length calculations for a "trimmed" pathname.
   if (argpath == NULL) {
     if (reserve == NULL) { //Always malloc() the space requested in reserve.
       arg_strlen = 0;
@@ -341,7 +348,6 @@ static bool within_rootdir (char *fullpath, const char *trimmed)
   char *canon;       //An abreviation of canonicalized absolute pathname.
   char *str;         //Return value of strcat function.
 
-  printf ("fullpath = %s\n", fullpath);
   //Resolve all "..", ".", and duplicate '/' entries. Resolve symbolic links.
   if ((canon = canonicalize_file_name (fullpath)) == NULL) {
     fprintf (stderr, "%s: canonicalize_file_name: %s\n", __FUNCTION__, 
