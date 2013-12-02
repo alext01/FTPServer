@@ -76,6 +76,10 @@
 //    {arg}
 //      > Type character pointer
 //      > Contains the entire argument string (excludes the command)
+//    {argCount}
+//      > Type integer
+//      > Contains the number of arguments passed from the command string (with
+//        the command itself being excluded from the count)
 //    {cmd}
 //      > Type character pointer
 //      > Contains the invoked command (excludes the argument string)
@@ -114,7 +118,8 @@ void *command_switch(void *param)
 
   session_info_t *si;
 
-  int numArgs;
+  int argCount,
+      numArgs;
 
   char *arg,
        *cmd,
@@ -126,6 +131,7 @@ void *command_switch(void *param)
   si = (session_info_t *)param;
   cmdLine = si->cmd_string;
   numArgs = command_arg_count(cmdLine);
+  argCount = 0;
 
   cmdUnrecognized = "500 - Syntax error, command unrecognized.\n";
   cmdUnimplemented = "502 - Command is not currently implemented.\n";
@@ -216,7 +222,13 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
-    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+	//Command STRU Invoked
+	if (arg != NULL) {
+	  argCount = command_arg_count(arg);
+	  convert_to_upper(arg);
+	} //END statement 'if'
+
+	cmd_stru(si, arg, argCount);
 
       /* MODE <SP> <mode-code> <CRLF> */
       } else if (strcmp(cmd, "MODE") == 0) {
@@ -297,6 +309,10 @@ void *command_switch(void *param)
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command HELP Invoked
+	if (arg != NULL) {
+	  convert_to_upper(arg);
+	} //END statement 'if'
+
 	command_help(si, arg);
 
       /* NOOP <CRLF> */

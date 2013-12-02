@@ -12,6 +12,7 @@
 #ifndef __CMD_MISC_H__
 #define __CMD_MISC_H__
 #include "session.h"
+#define MAX_NUM_ARGS 1
 
 
 /******************************************************************************
@@ -64,5 +65,30 @@ void cmd_mode(session_info_t *si, char *arg);
  *   our server was created for a UNIX system.
  *****************************************************************************/
 void cmd_syst (session_info_t *si);
+
+
+//===============================================================================
+//  Function Name:
+//    cmd_stru(session_info_t *si, char *arg, int argCount)
+//===============================================================================
+//  Description:
+//    
+//===============================================================================
+//  Parameter List (in order of entry):
+//    {si}
+//      > Type structure pointer
+//      > Contains all pertinent information in regards to the current client
+//    {arg}
+//      > Type character pointer
+//      > Contains the entire argument string (excludes the command)
+//    {argCount}
+//      > Type integer
+//      > Contains the number of arguments passed from the command string (with)
+//        the command itself being excluded from the count)
+//===============================================================================
+//  Return Value:
+//    
+//===============================================================================
+void cmd_stru(session_info_t *si, char *arg, int argCount);
 
 #endif //__CMD_MISC_H__

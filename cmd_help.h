@@ -29,13 +29,13 @@
 
 
 
-//Header File Reference(s)
-#include "session.h"
-
-
 //BEGIN macro guard '__CMD_HELP_H__'
 #ifndef __CMD_HELP_H__
 #define __CMD_HELP_H__
+
+
+//Header File Reference(s)
+#include "session.h"
 
 
 
@@ -50,16 +50,16 @@
 //  Parameter List (in order of entry):
 //    {si}
 //      > Type structure pointer
-//      > 
+//      > Contains all pertinent information in regards to the current client
 //    {arg}
 //      > Type character pointer
-//      > 
+//      > Contains the entire argument string (excludes the command)
 //===============================================================================
 //  Return Value:
 //    
 //===============================================================================
 
-void command_help(session_info_t *si, char *arg);
+int command_help(session_info_t *si, char *arg);
 
 
 

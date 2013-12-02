@@ -69,13 +69,18 @@ int command_arg_count(const char *cmdString)
   int argCount;
 
   argCount = 0;
+
   for (int i = 0; i < strlen(cmdString); i++) {
+
     if (!isspace(cmdString[i])) {
+
       while (!isspace(cmdString[i]) && (i < strlen(cmdString))) {
 	i++;
       } //END loop 'while'
+
       argCount++;
     } //END statement 'if'
+
   } //END loop 'for'
 
   return argCount;
@@ -184,7 +189,7 @@ char *command_extract_cmd(const char *cmdString)
 
   tempString = strdup(cmdString);
 
-  if ((command = (char *)calloc(strlen(tempString), sizeof(char))) == NULL) {
+  if ((command = (char *)calloc((strlen(tempString) + 1), sizeof(char))) == NULL) {
     free(tempString);
     return NULL;
   } //END statement 'if'

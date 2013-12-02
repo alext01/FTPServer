@@ -44,7 +44,7 @@
 //  Parameter List (in order of entry):
 //    {cmdString}
 //      > Type constant character pointer
-//      > 
+//      > Contains the entirety of the command string entered by the client
 //===============================================================================
 //  Return Value:
 //    
@@ -65,7 +65,7 @@ int command_arg_count(const char *cmdString);
 //  Parameter List (in order of entry):
 //    {cmdString}
 //      > Type constant character pointer
-//      > 
+//      > Contains the entirety of the command string entered by the client
 //===============================================================================
 //  Return Value:
 //    
@@ -86,7 +86,7 @@ char *command_extract_arg(const char *cmdString);
 //  Parameter List (in order of entry):
 //    {cmdString}
 //      > Type constant character pointer
-//      > 
+//      > Contains the entirety of the command string entered by the client
 //===============================================================================
 //  Return Value:
 //    

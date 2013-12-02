@@ -14,7 +14,6 @@
 //===============================================================================
 //  Associated Header File(s):
 //    > cmd_help.h
-//    > cmd_string_parser.h
 //    > net.h
 //    > session.h
 //===============================================================================
@@ -40,13 +39,12 @@
 
 //Header File Reference(s)
 #include "cmd_help.h"
-#include "cmd_string_parser.h"
 #include "net.h"
 #include "session.h"
 
 
 //Preprocessor Macro Define(s)
-#define CMD_LINE_LENGTH 128
+#define CMD_STRING_LENGTH 128
 #define MAX_CMD_SIZE 4
 #define MAX_NUM_ARGS 1
 #define MIN_CMD_SIZE 3
@@ -74,8 +72,14 @@
 //    {cmdUnimplemented}
 //      > Type character pointer
 //      > Contains the FTP server return code 502
+//    {helpMsgEnd}
+//      > Type constant character pointer
+//      > Contains part of the FTP server return code 214
+//    {helpMsgStart}
+//      > Type constant character pointer
+//      > Contains part of the FTP server return code 214
 //    {row#}
-//      > Type character pointer
+//      > Type constant character pointer
 //      > Each row contains a list of available FTP commands
 //    {strLength}
 //      > Type integer
@@ -85,34 +89,22 @@
 //    > N/A
 //===============================================================================
 
-void command_help(session_info_t *si, char *arg)
+int command_help(session_info_t *si, char *arg)
 { //BEGIN function 'command_help'
 
-  char *helpMsgEnd,
-       *helpMsgStart;
-
-  helpMsgStart = "\n214 - Help message.\n";
-  helpMsgEnd = "214 - Help is OK.\n\n";
+  const char *helpMsgEnd = "214 - Help is OK.\n\n",
+             *helpMsgStart = "\n214 - Help message.\n";
 
   if (arg == NULL) {
 
-    char *row1,
-         *row2,
-         *row3,
-         *row4,
-         *row5,
-         *row6,
-         *row7,
-         *row8;
-
-    row1 = "The follwing commands may be abbreviated\nThe available commands are:\n";
-    row2 = "\tABOR\tHELP\tPASV\tRMD\tSTOU\n";
-    row3 = "\tACCT\tLIST\tPORT\tRNFR\tSTRU\n";
-    row4 = "\tALLO\tMKD\tPWD\tRNTO\tSYST\n";
-    row5 = "\tAPPE\tMODE\tQUIT\tSITE\tTYPE\n";
-    row6 = "\tCDUP\tNLST\tREIN\tSMNT\tUSER\n";
-    row7 = "\tCWD\tNOOP\tREST\tSTAT\n";
-    row8 = "\tDELE\tPASS\tRETR\tSTOR\n";
+    const char *row1 = "The following commands may be abbreviated\nThe available commands are:\n",
+               *row2 = "\tABOR\tHELP\tPASV\tRMD\tSTOU\n",
+               *row3 = "\tACCT\tLIST\tPORT\tRNFR\tSTRU\n",
+               *row4 = "\tALLO\tMKD\tPWD\tRNTO\tSYST\n",
+               *row5 = "\tAPPE\tMODE\tQUIT\tSITE\tTYPE\n",
+               *row6 = "\tCDUP\tNLST\tREIN\tSMNT\tUSER\n",
+               *row7 = "\tCWD\tNOOP\tREST\tSTAT\n",
+               *row8 = "\tDELE\tPASS\tRETR\tSTOR\n";
 
     send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
     send_all(si->c_sfd, (uint8_t *)row1, strlen(row1));
@@ -125,7 +117,7 @@ void command_help(session_info_t *si, char *arg)
     send_all(si->c_sfd, (uint8_t *)row8, strlen(row8));
     send_all(si->c_sfd, (uint8_t *)helpMsgEnd, strlen(helpMsgEnd));
 
-    return;
+    return 0;
 
   } else {
 
@@ -136,21 +128,24 @@ void command_help(session_info_t *si, char *arg)
          *cmdLine,
          *cmdUnimplemented;
 
-    cmdLine = (char *)calloc(CMD_LINE_LENGTH, sizeof(char));
-    cmdInfo = (char *)calloc(CMD_LINE_LENGTH, sizeof(char));
+    if ((cmdLine = (char *)calloc((CMD_STRING_LENGTH + 1), sizeof(*cmdLine))) == NULL) {
+      return -1;
+    } //END statement 'if'
+
+    if ((cmdInfo = (char *)calloc((CMD_STRING_LENGTH + 1), sizeof(*cmdInfo))) == NULL) {
+      return -1;
+    } //END statement 'if'
 
     argUnrecognized = "501 - Syntax error, command unrecognized.\n";
     cmdUnimplemented = "502 - Command is not currently implemented.\n";
-
-    convert_to_upper(arg);
 
     if (strlen(arg) == MAX_CMD_SIZE) {
 
       /* USER <SP> <username> <CRLF> */
       if (strcmp(arg, "USER") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <username> <CRLF>\n", arg);
-	cmdInfo = "\tSend new user information\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <username> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tSend new user information\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -160,8 +155,8 @@ void command_help(session_info_t *si, char *arg)
 	/* PASS <SP> <password> <CRLF> */
       } else if (strcmp(arg, "PASS") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <password> <CRLF>\n", arg);
-	cmdInfo = "\tSend a user password\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <password> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tSend a user password\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -171,8 +166,8 @@ void command_help(session_info_t *si, char *arg)
 	/* QUIT <CRLF> */
       } else if (strcmp(arg, "QUIT") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <CRLF>\n", arg);
-	cmdInfo = "\tTerminate the FTP session and exit\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tTerminate the FTP session and exit\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -182,8 +177,8 @@ void command_help(session_info_t *si, char *arg)
 	/* PORT <SP> <host-port> <CRLF> */
       } else if (strcmp(arg, "PORT") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <host-port> <CRLF>\n", arg);
-	cmdInfo = "\tOpen a specified data port\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <host-port> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tOpen a specified data port\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -193,8 +188,8 @@ void command_help(session_info_t *si, char *arg)
 	/* PASV <CRLF> */
       } else if (strcmp(arg, "PASV") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <CRLF>\n", arg);
-	cmdInfo = "\tEnter passive transfer mode\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tEnter passive transfer mode\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -204,8 +199,8 @@ void command_help(session_info_t *si, char *arg)
 	/* TYPE <SP> <type-code> <CRLF> */
       } else if (strcmp(arg, "TYPE") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <type-code> <CRLF>\n", arg);
-	cmdInfo = "\tSet file transfer type\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <type-code> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tSet file transfer type\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -215,8 +210,8 @@ void command_help(session_info_t *si, char *arg)
 	/* STRU <SP> <structure-code> <CRLF> */
       } else if (strcmp(arg, "STRU") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <structure-code> <CRLF>\n", arg);
-	cmdInfo = "\tSet file transfer structure\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <structure-code> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tSet file transfer structure\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -226,8 +221,8 @@ void command_help(session_info_t *si, char *arg)
 	/* MODE <SP> <mode-code> <CRLF> */
       } else if (strcmp(arg, "MODE") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <mode-code> <CRLF>\n", arg);
-	cmdInfo = "\tSet file transfer mode\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <mode-code> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tSet file transfer mode\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -237,8 +232,8 @@ void command_help(session_info_t *si, char *arg)
 	/* RETR <SP> <pathname> <CRLF> */
       } else if (strcmp(arg, "RETR") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <pathname> <CRLF>\n", arg);
-	cmdInfo = "\tRetrieve a file from the remote host\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <pathname> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tRetrieve a file from the remote host\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -248,8 +243,8 @@ void command_help(session_info_t *si, char *arg)
 	/* STOR <SP> <pathname> <CRLF> */
       } else if (strcmp(arg, "STOR") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <pathname> <CRLF>\n", arg);
-	cmdInfo = "\tStore a file on the remote host\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <pathname> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tStore a file on the remote host\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -259,8 +254,8 @@ void command_help(session_info_t *si, char *arg)
 	/* STOU <CRLF> */
       } else if (strcmp(arg, "STOU") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <CRLF>\n", arg);
-	cmdInfo = "\tStore a file uniquely\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tStore a file uniquely\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -270,8 +265,8 @@ void command_help(session_info_t *si, char *arg)
 	/* APPE <SP> <pathname> <CRLF> */
       } else if (strcmp(arg, "APPE") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <pathname> <CRLF>\n", arg);
-	cmdInfo = "\tAppend to a remote file\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <pathname> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tAppend to a remote file\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -281,8 +276,8 @@ void command_help(session_info_t *si, char *arg)
 	/* ABOR <CRLF> */
       } else if (strcmp(arg, "ABOR") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <CRLF>\n", arg);
-	cmdInfo = "\tAbort a file transfer\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tAbort a file transfer\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -292,8 +287,8 @@ void command_help(session_info_t *si, char *arg)
 	/* LIST [<SP> <pathname>] <CRLF> */
       } else if (strcmp(arg, "LIST") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s [<SP> <pathname>] <CRLF>\n", arg);
-	cmdInfo = "\tList contents of remote path\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s [<SP> <pathname>] <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tList contents of remote path\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -303,8 +298,8 @@ void command_help(session_info_t *si, char *arg)
 	/* NLIST [<SP> <pathname>] <CRLF> */
       } else if (strcmp(arg, "NLST") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s [<SP> <pathname>] <CRLF>\n", arg);
-	cmdInfo = "\tName list of remote directory\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s [<SP> <pathname>] <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tName list of remote directory\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -314,8 +309,8 @@ void command_help(session_info_t *si, char *arg)
 	/* SYST <CRLF> */
       } else if (strcmp(arg, "SYST") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <CRLF>\n", arg);
-	cmdInfo = "\tReturn remote system type\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tReturn remote system type\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -325,8 +320,8 @@ void command_help(session_info_t *si, char *arg)
 	/* HELP [<SP> <string>] <CRLF> */
       } else if (strcmp(arg, "HELP") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s [<SP> <string>] <CRLF>\n", arg);
-	cmdInfo = "\tPrint local help information on using the server\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s [<SP> <string>] <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tPrint local help information on using the server\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -336,8 +331,8 @@ void command_help(session_info_t *si, char *arg)
 	/* NOOP <CRLF> */
       } else if (strcmp(arg, "NOOP") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <CRLF>\n", arg);
-	cmdInfo = "\tDo nothing; server sends an OK reply\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tDo nothing; server sends an OK reply\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -347,8 +342,8 @@ void command_help(session_info_t *si, char *arg)
 	/* ACCT <SP> <account-information> <CRLF> */
       } else if (strcmp(arg, "ACCT") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <account-information> <CRLF>\n", arg);
-	cmdInfo = "\tSend account command to the remote server\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <account-information> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tSend account command to the remote server\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -358,8 +353,8 @@ void command_help(session_info_t *si, char *arg)
 	/* CDUP <CRLF> */
       } else if (strcmp(arg, "CDUP") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <CRLF>\n", arg);
-	cmdInfo = "\tChange remote working directory to parent directory\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tChange remote working directory to parent directory\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -369,8 +364,8 @@ void command_help(session_info_t *si, char *arg)
 	/* SMNT <SP> <pathname> <CRLF> */
       } else if (strcmp(arg, "SMNT") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <pathname> <CRLF>\n", arg);
-	cmdInfo = "\tMount a different file system data structure without altering their login or accounting information\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <pathname> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tMount a different file system data structure without altering their login or accounting information\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -380,8 +375,8 @@ void command_help(session_info_t *si, char *arg)
 	/* REIN <CRLF> */
       } else if (strcmp(arg, "REIN") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <CRLF>\n", arg);
-	cmdInfo = "\tReinitialize the connection\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tReinitialize the connection\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -391,8 +386,8 @@ void command_help(session_info_t *si, char *arg)
 	/* ALLO <SP> <decimal-integer> [<SP> R <SP> <decimal-integer>] <CRLF> */
       } else if (strcmp(arg, "ALLO") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <decimal-integer> [<SP> R <SP> <decimal-integer>] <CRLF>\n", arg);
-	cmdInfo = "\tAllocate sufficient storage space to receive a file\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <decimal-integer> [<SP> R <SP> <decimal-integer>] <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tAllocate sufficient storage space to receive a file\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -402,8 +397,8 @@ void command_help(session_info_t *si, char *arg)
 	/* REST <SP> <marker> <CRLF> */
       } else if (strcmp(arg, "REST") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <marker> <CRLF>\n", arg);
-	cmdInfo = "\tRestart transfer at bytecount marker\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <marker> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tRestart transfer at bytecount marker\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -413,8 +408,8 @@ void command_help(session_info_t *si, char *arg)
 	/* RNFR <SP> <pathname> <CRLF> */
       } else if (strcmp(arg, "RNFR") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <pathname> <CRLF>\n", arg);
-	cmdInfo = "\tUsed when renaming a file; rename from\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <pathname> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tUsed when renaming a file; rename from\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -424,8 +419,8 @@ void command_help(session_info_t *si, char *arg)
 	/* RNTO <SP> <pathname> <CRLF> */
       } else if (strcmp(arg, "RNTO") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <pathname> <CRLF>\n", arg);
-	cmdInfo = "\tUsed when renaming a file; rename to\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <pathname> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tUsed when renaming a file; rename to\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -435,8 +430,8 @@ void command_help(session_info_t *si, char *arg)
 	/* DELE <SP> <pathname> <CRLF> */
       } else if (strcmp(arg, "DELE") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <pathname> <CRLF>\n", arg);
-	cmdInfo = "\tDelete a remote file\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <pathname> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tDelete a remote file\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -446,8 +441,8 @@ void command_help(session_info_t *si, char *arg)
 	/* SITE <SP> <string> <CRLF> */
       } else if (strcmp(arg, "SITE") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <string> <CRLF>\n", arg);
-	cmdInfo = "\tSend site specific command to the remote server\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <string> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tSend site specific command to the remote server\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -457,8 +452,8 @@ void command_help(session_info_t *si, char *arg)
 	/* STAT [<SP> <pathname>] <CRLF> */
       } else if (strcmp(arg, "STAT") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s [<SP> <pathname>] <CRLF>\n", arg);
-	cmdInfo = "\tReturn current server status\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s [<SP> <pathname>] <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tReturn current server status\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -476,8 +471,8 @@ void command_help(session_info_t *si, char *arg)
       /* CWD <SP> <pathname> <CRLF> */
       if (strcmp(arg, "CWD") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <pathname> <CRLF>\n", arg);
-	cmdInfo = "\tChange the current working directory on the remote machine\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <pathname> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tChange the current working directory on the remote machine\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -487,8 +482,8 @@ void command_help(session_info_t *si, char *arg)
 	/* RMD <SP> <pathname> <CRLF> */
       } else if (strcmp(arg, "RMD") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <pathname> <CRLF>\n", arg);
-	cmdInfo = "\tRemove a directory on the remote machine\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <pathname> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tRemove a directory on the remote machine\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -498,8 +493,8 @@ void command_help(session_info_t *si, char *arg)
 	/* MKD <SP> <pathname> <CRLF> */
       } else if (strcmp(arg, "MKD") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <SP> <pathname> <CRLF>\n", arg);
-	cmdInfo = "\tCreate a directory on the remote machine\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <SP> <pathname> <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tCreate a directory on the remote machine\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -509,8 +504,8 @@ void command_help(session_info_t *si, char *arg)
 	/* PWD <CRLF> */
       } else if (strcmp(arg, "PWD") == 0) {
 
-	strLength = sprintf(cmdLine, "To use: %s <CRLF>\n", arg);
-	cmdInfo = "\tPrint the current working directory on the remote machine\n";
+	strLength = snprintf(cmdLine, (CMD_STRING_LENGTH + 1), "To use: %s <CRLF>\n", arg);
+	strncpy(cmdInfo, "\tPrint the current working directory on the remote machine\n", (CMD_STRING_LENGTH + 1));
 
 	send_all(si->c_sfd, (uint8_t *)helpMsgStart, strlen(helpMsgStart));
 	send_all(si->c_sfd, (uint8_t *)cmdLine, strLength);
@@ -530,6 +525,9 @@ void command_help(session_info_t *si, char *arg)
     } //END statement 'if-else'
 
     free(cmdLine);
+    free(cmdInfo);
+
+    return 0;
 
   } //END statement 'if-else'
 

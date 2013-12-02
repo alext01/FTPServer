@@ -55,7 +55,7 @@ cmd_misc.o: 	cmd_misc.c cmd_misc.h net.h session.h
 cmd_retr.o:	cmd_retr.c cmd_retr.h net.h path.h session.h
 		$(CC) $(CFLAGS) -c -o $@ $<
 
-cmd_help.o:	cmd_help.c cmd_help.h cmd_string_parser.h net.h session.h
+cmd_help.o:	cmd_help.c cmd_help.h net.h session.h
 		$(CC) $(CFLAGS) -c -o $@ $<
 
 
