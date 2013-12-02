@@ -92,16 +92,13 @@ void command_retrieve(session_info_t *si, char *path)
   char buffer[BUFFSIZE];
 
   char *aborted,
-       *endLine,
        *fullPath,
-       *middle,
        *noAccess,
        *noConnection,
        *success,
-       *transferStart,
-       *type;
+       *transferStart;
 
-  if ((si->logged_in == false) || (strcmp(si->user, "anonymous") == 0)) {
+  if (si->logged_in == false) {
     noAccess = "550 - Access denied.\n";
     send_all(si->c_sfd, (uint8_t *)noAccess, strlen(noAccess));
     return;
@@ -113,20 +110,7 @@ void command_retrieve(session_info_t *si, char *path)
   } //END statement 'if'
 
   transferStart = "150 - File status okay; about to open data connection.\n";
-  middle = " mode data connection for ";
-  endLine = ".\n";
   send_all(si->c_sfd, (uint8_t *)transferStart, strlen(transferStart));
-
-  if (si->type == 'a') {
-    type = "ASCII";
-  } else {
-    type = "BINARY";
-  } //END statement 'if-else'
-
-  send_all(si->c_sfd, (uint8_t *)type, strlen(type));
-  send_all(si->c_sfd, (uint8_t *)middle, strlen(middle));
-  send_all(si->c_sfd, (uint8_t *)path, strlen(path));
-  send_all(si->c_sfd, (uint8_t *)endLine, strlen(endLine));
 
   if (si->d_sfd == 0) {
     noConnection = "425 - Cannot open data connection; please use the PORT or PASV command first.\n";
@@ -187,7 +171,7 @@ void command_retrieve(session_info_t *si, char *path)
 	  si->d_sfd = 0;
 	  return;
 	} else if (feof(retrFile)) {
-	  continue;
+	  break;
 	} //END statement 'if-else'
 
       } //END statement 'if'
@@ -203,6 +187,13 @@ void command_retrieve(session_info_t *si, char *path)
 
   } //END loop 'while'
 
+
+  if (fclose(retrFile) == EOF)
+    fprintf (stderr, "%s: fclose: %s\n", __FUNCTION__, strerror (errno));
+  if (close(si->d_sfd) == -1)
+    fprintf (stderr, "%s: close: %s\n", __FUNCTION__, strerror (errno));
+  si->d_sfd = 0;
+
   if (si->cmd_abort == true) {
     aborted = "426 - Connection close; transfer aborted.\n";
     send_all(si->c_sfd, (uint8_t *)aborted, strlen(aborted));
@@ -212,9 +203,6 @@ void command_retrieve(session_info_t *si, char *path)
     send_all(si->c_sfd, (uint8_t *)success, strlen(success));
   } //END statement 'if-else'
 
-  fclose(retrFile);
-  close(si->d_sfd);
-  si->d_sfd = 0;
   return;
 
 } //END function 'command_retrieve'

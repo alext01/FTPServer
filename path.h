@@ -34,7 +34,7 @@
  *
  * Original author: Evan Myers
  *****************************************************************************/
-bool check_file_exist (const char *cwd, const char *argpath);
+bool check_file_exist (const char *cwd, char *argpath);
 
 
 /******************************************************************************
@@ -60,7 +60,7 @@ bool check_file_exist (const char *cwd, const char *argpath);
  *
  * Original author: Evan Myers
  *****************************************************************************/
-bool check_dir_exist (const char *cwd, const char *argpath);
+bool check_dir_exist (const char *cwd, char *argpath);
 
 
 /******************************************************************************
@@ -137,7 +137,7 @@ int check_futer_file (const char *cwd, char *argpath, bool unique);
  *   string - The full pathname to the argument (rootdir -> cwd -> argument).
  *     NULL - Error
  *****************************************************************************/
-char *merge_paths (const char *cwd, const char *argpath, const int *reserve);
+char *merge_paths (const char *cwd, char *argpath, const int *reserve);
 
 
 #endif //__PATH_H__
