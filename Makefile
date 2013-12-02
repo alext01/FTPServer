@@ -65,6 +65,6 @@ cmd_help.o:	cmd_help.c cmd_help.h net.h session.h
 #Clean up the repository.
 .PHONY:		clean
 clean:
-		$(RM) main cmdstrparser.o cmd_switch.o config.o ctrlthread.o main.o md5.o \
+		$(RM) ftpd cmdstrparser.o cmd_switch.o config.o ctrlthread.o main.o md5.o \
 		net.o path.o response.o servercmd.o session.o queue.o users.o filemanip.o \
 		cmd_stor.o cmd_misc.o cmd_retr.o cmd_help.o
