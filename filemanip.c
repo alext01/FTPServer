@@ -308,7 +308,20 @@ int makeDir(session_info_t *si, char * filepath){
   mode_t permissions = 0;
   permissions = permissions | S_IRUSR;
   permissions = permissions | S_IWUSR;
-  permissions = permissions | S_IRGRP;
+  permissions = permissions | S_IXUSR;
+
+  if(si->logged_in == false){
+    char *response = "550 Please login with USER and PASS.\n";
+    send_all(si->c_sfd, (uint8_t *)response, strlen(response));
+    return -1;
+  }
+
+  if( (filepath = merge_paths(si->cwd, filepath, NULL)) == NULL){
+    send_mesg_451(si->c_sfd);
+    close(si->d_sfd);
+    si->d_sfd = 0;
+    return -1;
+  }
 
   errno = 0;
 
@@ -321,6 +334,16 @@ int makeDir(session_info_t *si, char * filepath){
 
     return -1;
   }
+  printf("mkdir successful\n");
+
+  char * printStart = "257 - /";
+  char * printEnd = "/ \n";
+  char * root = "rootdir";
+  char * outpath = strstr(filepath, root);
+
+  send_all(si->c_sfd, (uint8_t *)printStart, strlen(printStart));
+  send_all(si->c_sfd, (uint8_t *)outpath, strlen(outpath));
+  send_all(si->c_sfd, (uint8_t *)printEnd, strlen(printEnd));
 
   return 0;
 }
