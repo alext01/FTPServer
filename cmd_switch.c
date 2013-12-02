@@ -14,6 +14,7 @@
 //===============================================================================
 //  Associated Header File(s):
 //    > cmd_help.h
+//    > cmd_misc.h
 //    > cmd_retr.h
 //    > cmd_stor.h
 //    > cmd_string_parser.h
@@ -44,6 +45,7 @@
 
 
 //Header File Reference(s)
+#include "cmd_help.h"
 #include "cmd_misc.h"
 #include "cmd_retr.h"
 #include "cmd_stor.h"
@@ -295,7 +297,7 @@ void *command_switch(void *param)
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command HELP Invoked
-	command_help(si, arg);
+	//command_help(si, arg);
 
       /* NOOP <CRLF> */
       } else if (strcmp(cmd, "NOOP") == 0) {
