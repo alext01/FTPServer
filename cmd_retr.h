@@ -10,17 +10,18 @@
 //                James Yoo
 //===============================================================================
 //  Filename:
-//    cmd_switch.h
+//    cmd_retr.h
 //===============================================================================
 //  Associated Header File(s):
-//    > N/A
+//    > session.h
 //===============================================================================
 //  Overview:
-//    A massive 'if-else if' statement that determines the command that has been
-//    invoked by the client and performs an appropriately related action.
+//    
+//    
+//    
 //===============================================================================
 //  Function Listing (in order of entry):
-//    > command_switch
+//    > command_retrieve
 //===============================================================================
 //  Code Citation(s):
 //    > http://www.cplusplus.com/reference/
@@ -31,33 +32,39 @@
 
 
 
-//BEGIN macro guard '__CMD_SWITCH_H__'
-#ifndef __CMD_SWITCH_H__
-#define __CMD_SWITCH_H__
+//BEGIN macro guard '__CMD_RETR_H__'
+#ifndef __CMD_RETR_H__
+#define __CMD_RETR_H__
+
+
+//Header File Reference(s)
+#include "session.h"
 
 
 
 
 //===============================================================================
 //  Function Name:
-//    command_switch(void *param)
+//    command_retrieve(session_info_t *si, char *path)
 //===============================================================================
 //  Description:
 //    
 //===============================================================================
 //  Parameter Listing (in order of entry):
-//    {param}
-//      > Type function pointer
+//    {si}
+//      > Type structure pointer
+//      > Contains all pertinent information in regards to the current client
+//    {path}
+//      > Type character pointer
 //      > 
 //===============================================================================
 //  Return Value(s):
 //    
 //===============================================================================
-
-void *command_switch(void *param);
-
+void command_retrieve(session_info_t *si, char *path);
 
 
 
-//END macro guard '__CMD_SWITCH_H__'
+
+//END macro guard '__CMD_RETR_H__'
 #endif

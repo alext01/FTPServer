@@ -1,28 +1,29 @@
-//=============================================================================
-// Assignment #03 - FTP Server
-//=============================================================================
-// Date:        November 2013
-// Course:      CMPT 361 - Introduction to Networks
-// Instructor:  Dr. Nicholas M. Boers
-// Students:    Evan Myers
-//              Justin Slind
-//              Alex Tai
-//              James Yoo
-//=============================================================================
-// Filename:
-//     cmd_string_parser.c
-//=============================================================================
-// Associated Header File(s):
-//   > cmd_string_parser.h
-//=============================================================================
-// Brief Description:
-//     The following functions perform parsing operations on an input string
-//     that conatins an FTP command along with all of its relevants arguments.
-//=============================================================================
-// Code Citation(s):
-//     * http://www.cplusplus.com/reference/
-//     * http://www.stackoverflow.com/
-//=============================================================================
+//===============================================================================
+//  Assignment #03 - FTP Server
+//===============================================================================
+//  Date:         November 2013
+//  Course:       CMPT 361 - Introduction to Networks
+//  Instructor:   Dr. Nicholas M. Boers
+//  Students:     Evan Myers
+//                Justin Slind
+//                Alex Tai
+//                James Yoo
+//===============================================================================
+//  Filename:
+//    cmd_string_parser.c
+//===============================================================================
+//  Associated Header File(s):
+//    > cmd_string_parser.h
+//===============================================================================
+//  Overview:
+//    The following functions perform parsing operations on an input string that
+//    contains an FTP command along with all of its relevant arguments.
+//===============================================================================
+//  Code Citation(s):
+//    > http://www.cplusplus.com/reference/
+//    > http://www.beej.us/guide/bgnet/output/html/singlepage/bgnet.html
+//    > http://www.stackoverflow.com/
+//===============================================================================
 
 
 
@@ -43,24 +44,25 @@
 
 
 
-//=============================================================================
-// Function Name:
-//   int command_arg_count(const char *cmdString)
-//=============================================================================
-// Brief Description:
-//   
-//=============================================================================
-// List of Variables:
-//   {argCount}
-//     > Type integer
-//     > Maintains count of the number of arguments within the given string
-//   {i}
-//     > Type integer
-//     > 'for' loop counter and array indexer
-//=============================================================================
-// Related Citation(s):
-//   > N/A
-//=============================================================================
+//===============================================================================
+//  Function Name:
+//    command_arg_count(const char *cmdString)
+//===============================================================================
+//  Description:
+//    Consult file "cmd_string_parser.h"
+//===============================================================================
+//  Variable Listing (in alphabetical order):
+//    {argCount}
+//      > Type integer
+//      > Contains the count of the number of arguments within the given command
+//        string
+//    {i}
+//      > Type integer
+//      > Contains the 'for' loop counter and array indexer
+//===============================================================================
+//  Related Citation(s):
+//    > N/A
+//===============================================================================
 
 int command_arg_count(const char *cmdString)
 { //BEGIN function 'command_arg_count'
@@ -68,13 +70,18 @@ int command_arg_count(const char *cmdString)
   int argCount;
 
   argCount = 0;
+
   for (int i = 0; i < strlen(cmdString); i++) {
+
     if (!isspace(cmdString[i])) {
+
       while (!isspace(cmdString[i]) && (i < strlen(cmdString))) {
 	i++;
       } //END loop 'while'
+
       argCount++;
     } //END statement 'if'
+
   } //END loop 'for'
 
   return argCount;
@@ -84,30 +91,31 @@ int command_arg_count(const char *cmdString)
 
 
 
-//=============================================================================
-// Function Name:
-//   char *command_extract_arg(const char *cmdString)
-//=============================================================================
-// Brief Description:
-//     
-//=============================================================================
-// List of Variables:
-//   {argCount}
-//     > Type integer
-//     > Maintains count of the number of arguments within the given string
-//   {argString}
-//     > Type character pointer
-//     > 
-//   {command}
-//     > Type character pointer
-//     > 
-//   {tempString}
-//     > Type character pointer
-//     > 
-//=============================================================================
-// Related Citation(s):
-//   > N/A
-//=============================================================================
+//===============================================================================
+//  Function Name:
+//    command_extract_arg(const char *cmdString)
+//===============================================================================
+//  Description:
+//    Consult file "cmd_string_parser.h"
+//===============================================================================
+//  Variable Listing (in alphabetical order):
+//    {argCount}
+//      > Type integer
+//      > Contains the count of the number of arguments within the given command
+//        string
+//    {argString}
+//      > Type character pointer
+//      > Contains the entire argument string (excludes the command)
+//    {command}
+//      > Type character pointer
+//      > Contains the invoked command (excludes the argument string)
+//    {tempString}
+//      > Type character pointer
+//      > Contains a duplicate of the original command string
+//===============================================================================
+//  Related Citation(s):
+//    > N/A
+//===============================================================================
 
 char *command_extract_arg(const char *cmdString)
 { //BEGIN function 'command_extract_arg'
@@ -151,27 +159,27 @@ char *command_extract_arg(const char *cmdString)
 
 
 
-//=============================================================================
-// Function Name:
-//   char *command_extract_cmd(const char *cmdString)
-//=============================================================================
-// Brief Description:
-//     
-//=============================================================================
-// List of Variables:
-//   {command}
-//     > Type character pointer
-//     > 
-//   {tempString}
-//     > Type character pointer
-//     > 
-//   {token}
-//     > Type character pointer
-//     > 
-//=============================================================================
-// Related Citation(s):
-//   > N/A
-//=============================================================================
+//===============================================================================
+//  Function Name:
+//    command_extract_cmd(const char *cmdString)
+//===============================================================================
+//  Description:
+//    Consult file "cmd_string_parser.h"
+//===============================================================================
+//  Variable Listing (in alphabetical order):
+//    {command}
+//      > Type character pointer
+//      > Contains the invoked command (excludes the argument string)
+//    {tempString}
+//      > Type character pointer
+//      > Contains a duplicate of the original command string
+//    {token}
+//      > Type character pointer
+//      > Contains a string token from 'tempString' delimited by spaces
+//===============================================================================
+//  Related Citation(s):
+//    > N/A
+//===============================================================================
 
 char *command_extract_cmd(const char *cmdString)
 { //BEGIN function 'command_extract'
@@ -182,7 +190,7 @@ char *command_extract_cmd(const char *cmdString)
 
   tempString = strdup(cmdString);
 
-  if ((command = (char *)calloc(strlen(tempString), sizeof(char))) == NULL) {
+  if ((command = (char *)calloc((strlen(tempString) + 1), sizeof(char))) == NULL) {
     free(tempString);
     return NULL;
   } //END statement 'if'
@@ -206,21 +214,21 @@ char *command_extract_cmd(const char *cmdString)
 
 
 
-//=============================================================================
-// Function Name:
-//   char *strdup(const char *string)
-//=============================================================================
-// Brief Description:
-//     
-//=============================================================================
-// List of Variables:
-//   {duplicate}
-//     > Type character pointer
-//     > 
-//=============================================================================
-// Related Citation(s):
-//   > http://www.stackoverflow.com/questions/252782/strdup-what-does-it-do-in-c/
-//=============================================================================
+//===============================================================================
+//  Function Name:
+//    strdup(const char *string)
+//===============================================================================
+//  Description:
+//    Consult file "cmd_string_parser.h"
+//===============================================================================
+//  Variable Listing (in alphabetical order):
+//    {duplicate}
+//      > Type character pointer
+//      > Contains a duplicate of the original command string
+//===============================================================================
+//  Related Citation(s):
+//    > http://www.stackoverflow.com/questions/252782/strdup-what-does-it-do-in-c/
+//===============================================================================
 
 char *strdup(const char *string)
 { //BEGIN function 'strdup'
@@ -241,21 +249,21 @@ char *strdup(const char *string)
 
 
 
-//=============================================================================
-// Function Name:
-//   void convert_to_upper(char *string)
-//=============================================================================
-// Brief Description:
-//   
-//=============================================================================
-// List of Variables:
-//   {i}
-//     > Type integer
-//     > 'for' loop counter and array indexer
-//=============================================================================
-// Related Citation(s):
-//   > N/A
-//=============================================================================
+//===============================================================================
+//  Function Name:
+//    convert_to_upper(char *string)
+//===============================================================================
+//  Description:
+//    Consult file "cmd_string_parser.h"
+//===============================================================================
+//  Variable Listing (in alphabetical order):
+//    {i}
+//      > Type integer
+//      > Contains the 'for' loop counter and array indexer
+//===============================================================================
+//  Related Citation(s):
+//    > N/A
+//===============================================================================
 
 void convert_to_upper(char *string)
 { //BEGIN function 'conver_to_upper'
@@ -269,27 +277,27 @@ void convert_to_upper(char *string)
 
 
 
-//=============================================================================
-// Function Name:
-//   void trim_whitespace(char *string)
-//=============================================================================
-// Brief Description:
-//   
-//=============================================================================
-// List of Variables:
-//   {length}
-//     > Type integer
-//     > 
-//   {head}
-//     > Type character pointer
-//     > 
-//   {tail}
-//     > Type character pointer
-//     > 
-//=============================================================================
-// Related Citation(s):
-//   > http://www.stackoverflow.com/questions/122616/how-do-i-trim-leading-trailing-whitespace-in-a-standard-way/
-//=============================================================================
+//===============================================================================
+//  Function Name:
+//    trim_whitespace(char *string)
+//===============================================================================
+//  Description:
+//    Consult file "cmd_string_parser.h"
+//===============================================================================
+//  Variable Listing (in alphabetical order):
+//    {length}
+//      > Type integer
+//      > Contains the length of the given string
+//    {head}
+//      > Type character pointer
+//      > Contains a pointer to the beginning of the character array
+//    {tail}
+//      > Type character pointer
+//      > Contains a pointer to the end of the character array
+//===============================================================================
+//  Related Citation(s):
+//    > http://www.stackoverflow.com/questions/122616/how-do-i-trim-leading-trailing-whitespace-in-a-standard-way/
+//===============================================================================
 
 void trim_whitespace(char *string)
 { //BEGIN function 'trim_whitespace'
@@ -313,6 +321,7 @@ void trim_whitespace(char *string)
   } //END statement 'if-else'
 
   tail = string;
+
   if (head != string) {
     while (*head) *tail++ = *head++;
     *tail = '\0';

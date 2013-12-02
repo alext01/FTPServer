@@ -73,6 +73,7 @@ int get_control_sock (void);
  *
  *        An example of a server command is "help" and "shutdown". For more
  *        information on all server commands, view the file "servercmd.h".
+ *        Alternatively, run the server and type "help".
  *
  *    ACCEPT_PASV -
  *        The caller function should pass this mode when wishing to accept a

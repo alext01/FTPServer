@@ -1,3 +1,15 @@
+/******************************************************************************
+ * Students: Evan Myers, Justin Slind, Alex Tai, James Yoo
+ * Course: CMPT-361
+ * Assignment #3 - ftp server
+ * File: users.c
+ * Date: November 2013
+ *
+ * Description:
+ *   Functions to deal with users logging into the server.
+ *****************************************************************************/
+
+
 #include <string.h>
 #include <strings.h>
 #include <stdlib.h>

@@ -62,6 +62,21 @@ int send_mesg_227 (int c_sfd, int d_sfd);
 
 
 /******************************************************************************
+ * A permanent negative response. Action not taken because file is unavailable.
+ *
+ * Arguments:
+ *   c_sfd - The file descriptor of the control connection socket. The response
+ *           message will be sent to this socket.
+ *
+ * Return values:
+ *    0   The message was successfuly sent to the socket.
+ *   -1   The entire message was not sent to the socket.
+ *
+ * Original author: Evan Myers
+ *****************************************************************************/
+int send_mesg_450 (int c_sfd);
+
+/******************************************************************************
  * A negative response sent when there was an error in processing.
  *
  * Arguments:
@@ -144,6 +159,23 @@ int send_mesg_530 (int c_sfd);
  * Original author: Evan Myers
  *****************************************************************************/
 int send_mesg_550 (int c_sfd);
+
+
+/******************************************************************************
+ * This function generates a negative response message for when the pathname
+ * of a file argument is not allowed.
+ *
+ * Arguments:
+ *   c_sfd - The file descriptor of the control connection socket. The response
+ *           message will be sent to this socket.
+ *
+ * Return values:
+ *   0    The message was successfuly sent to the socket.
+ *  -1    The entire message was not sent to the socket.
+ *
+ * Original author: Evan Myers
+ *****************************************************************************/
+int send_mesg_553 (int c_sfd);
 
 
 #endif //__RESPONSE_H__

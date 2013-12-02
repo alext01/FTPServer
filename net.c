@@ -481,7 +481,9 @@ int cmd_port (session_info_t *session, char *cmd_str)
     return -1;
   }
   char *portsuccess = "200 PORT command successful. Consider using PASV.\n";
-  send_all(session->c_sfd, (uint8_t*)portsuccess,strlen(portsuccess));
+
+  send_all(session->c_sfd,(uint8_t*)portsuccess,strlen(portsuccess));
+
   //Create a data connection to the hostname and service provided by the client.
   if ((session->d_sfd = port_connect (hostname, service)) == -1) {
     //Error message code to control socket.
@@ -694,6 +696,8 @@ int port_connect (char *hostname, char *service)
     fprintf (stderr, "%s: connect: %s\n", __FUNCTION__, strerror (errno));
     return -1;
   }
+
+
 
   freeaddrinfo (result);  //Free the getaddrinfo() result.
   return sfd;             //Return the data connection socket file descriptor.

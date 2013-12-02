@@ -1,21 +1,38 @@
+/******************************************************************************
+ * Students: Evan Myers, Justin Slind, Alex Tai, James Yoo
+ * Course: CMPT-361
+ * Assignment #3 - ftp server
+ * File: session.c
+ * Date: November 2013
+ *
+ * Description:
+ *   The main loop that each client goes through.  Accepts commands and stores
+ *   them in a queue.  Launches a separate thread to deal with commands one at
+ *   a time. Handles the abort.
+ *****************************************************************************/
+
+
 #include <errno.h>
 #include <pthread.h>
 #include <stdbool.h>
-#include <sys/select.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+#include <stdio.h>
 #include <string.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
+#include "cmd_switch.h"
+#include "net.h"
 #include "session.h"
 #include "queue.h"
-#include "cmd_switch.h"
-
-#include <stdio.h>
-
 
 
 extern int shutdown_server;
 
+
+/******************************************************************************
+ * session - see session.h
+ *****************************************************************************/
 int session(int c_sfd) {
 
 	queue *cmd_queue_ptr = NULL;
@@ -77,6 +94,8 @@ int session(int c_sfd) {
 			printf("Abort was set\n");
 			sessioninfo.cmd_abort = true;
 			commandstr[0] = '\0';
+			char *abort = "226 Abort.\n";
+			send_all(sessioninfo.c_sfd,(uint8_t*)abort,strlen(abort));
 		}
 
 
@@ -138,7 +157,9 @@ int session(int c_sfd) {
 }
 
 
-//Evan: I have changed the void return type to int, so that recv may return error.
+/******************************************************************************
+ * readCmd - see session.h
+ *****************************************************************************/
 int readCmd(char *str, int sock, session_info_t *si) {
 	int rt = 0;
 	int len = 0;

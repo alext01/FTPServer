@@ -10,17 +10,19 @@
 //                James Yoo
 //===============================================================================
 //  Filename:
-//    cmd_switch.h
+//    cmd_help.h
 //===============================================================================
 //  Associated Header File(s):
-//    > N/A
+//    > session.h
 //===============================================================================
 //  Overview:
-//    A massive 'if-else if' statement that determines the command that has been
-//    invoked by the client and performs an appropriately related action.
+//    When HELP is invoked without an argument, it will return a list of all the
+//    available FTP server commands that the client is able to use.
+//    When HELP is invoked with an argument, it will return a short description
+//    of the specified command and how it is to be used.
 //===============================================================================
 //  Function Listing (in order of entry):
-//    > command_switch
+//    > command_help
 //===============================================================================
 //  Code Citation(s):
 //    > http://www.cplusplus.com/reference/
@@ -31,33 +33,40 @@
 
 
 
-//BEGIN macro guard '__CMD_SWITCH_H__'
-#ifndef __CMD_SWITCH_H__
-#define __CMD_SWITCH_H__
+//BEGIN macro guard '__CMD_HELP_H__'
+#ifndef __CMD_HELP_H__
+#define __CMD_HELP_H__
+
+
+//Header File Reference(s)
+#include "session.h"
 
 
 
 
 //===============================================================================
 //  Function Name:
-//    command_switch(void *param)
+//    command_help(session_info_t *si, char *arg)
 //===============================================================================
 //  Description:
 //    
 //===============================================================================
 //  Parameter Listing (in order of entry):
-//    {param}
-//      > Type function pointer
-//      > 
+//    {si}
+//      > Type structure pointer
+//      > Contains all pertinent information in regards to the current client
+//    {arg}
+//      > Type character pointer
+//      > Contains the entire argument string (excludes the command)
 //===============================================================================
 //  Return Value(s):
 //    
 //===============================================================================
 
-void *command_switch(void *param);
+int command_help(session_info_t *si, char *arg);
 
 
 
 
-//END macro guard '__CMD_SWITCH_H__'
+//END macro guard '__CMD_HELP_H__'
 #endif
