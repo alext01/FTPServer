@@ -425,7 +425,7 @@ void *command_switch(void *param)
 
 	//Debug Print
 	fprintf(stderr, "User <%s>\n\tERROR: Command <%s> Unknown!\n", si->user, cmd);
-	fprintf(stderr, "\tArgument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
+	fprintf(stderr, "\tArgument Count (%d)\n\tString Length (%d)\n", numArgs, (int)strlen(cmdLine));
 
 	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -486,7 +486,7 @@ void *command_switch(void *param)
 
 	//Debug Print
 	fprintf(stderr, "User <%s>\n\tERROR: Command <%s> Unknown!\n", si->user, cmd);
-	fprintf(stderr, "\tArgument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
+	fprintf(stderr, "\tArgument Count (%d)\n\tString Length (%d)\n", numArgs, (int)strlen(cmdLine));
 
 	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -500,7 +500,7 @@ void *command_switch(void *param)
 
       //Debug Print
       fprintf(stderr, "User <%s>\n\tERROR: Command <%s> Unknown!\n", si->user, cmd);
-      fprintf(stderr, "\tArgument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
+      fprintf(stderr, "\tArgument Count (%d)\n\tString Length (%d)\n", numArgs, (int)strlen(cmdLine));
 
       send_all(si->c_sfd, (uint8_t *)cmdUnrecognized, strlen(cmdUnrecognized));
 
@@ -513,7 +513,7 @@ void *command_switch(void *param)
 
     //Debug Print
     fprintf(stderr, "User <%s>\n\tERROR: Missing Command/Insufficient Arguments!\n", si->user);
-    fprintf(stderr, "\tArgument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
+    fprintf(stderr, "\tArgument Count (%d)\n\tString Length (%d)\n", numArgs, (int)strlen(cmdLine));
 
   } //END statement 'if-else'
 
