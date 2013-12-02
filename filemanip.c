@@ -333,7 +333,7 @@ int makeDir(session_info_t *si, char * filepath){
     send_mesg_550(si->c_sfd);
     close(si->d_sfd);
     si->d_sfd = 0;
-
+    free(filepath);
     return -1;
   }
   printf("mkdir successful\n");
@@ -347,6 +347,7 @@ int makeDir(session_info_t *si, char * filepath){
   send_all(si->c_sfd, (uint8_t *)outpath, strlen(outpath));
   send_all(si->c_sfd, (uint8_t *)printEnd, strlen(printEnd));
 
+  free(filepath);
   return 0;
 }
 
