@@ -126,16 +126,13 @@ void *command_switch(void *param)
        *cmd,
        *cmdLine;
 
-  char *cmdUnimplemented,
-       *cmdUnrecognized;
+  char *cmdUnrecognized = "500 - Syntax error, command unrecognized.\n",
+       *cmdUnimplemented = "502 - Command is not currently implemented.\n";
 
   si = (session_info_t *)param;
   cmdLine = si->cmd_string;
   numArgs = command_arg_count(cmdLine);
   argCount = 0;
-
-  cmdUnrecognized = "500 - Syntax error, command unrecognized.\n";
-  cmdUnimplemented = "502 - Command is not currently implemented.\n";
 
   if (numArgs >= MIN_NUM_ARGS) {
 
@@ -184,9 +181,8 @@ void *command_switch(void *param)
 	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command QUIT Invoked
-	char *retCodeQuit;
+	char *retCodeQuit = "221 - Quitting system; goodbye.\n";
 
-	retCodeQuit = "221 - Quitting system; goodbye.\n";
 	send_all(si->c_sfd, (uint8_t *)retCodeQuit, strlen(retCodeQuit));
 	si->cmd_quit = true;
 
@@ -479,12 +475,9 @@ void *command_switch(void *param)
 	//Debug Print
 	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
-	char *printEnd,
-	     *printStart;
+	char *printStart = "257 - \"",
+	     *printEnd = "\".\n";
 
-	printStart = "257 - \"";
-	printEnd = "\".\n";
-	
 	send_all(si->c_sfd, (uint8_t *)printStart, strlen(printStart));
 	send_all(si->c_sfd, (uint8_t *)si->cwd, strlen(si->cwd));
 	send_all(si->c_sfd, (uint8_t *)printEnd, strlen(printEnd));
