@@ -143,7 +143,7 @@ void *command_switch(void *param)
     arg = command_extract_arg(cmdLine);
 
     //Debug Print
-    printf("CHECK: Return value of 'cmd' <%s> and 'arg' \"%s\"\n", cmd, arg);
+    fprintf(stderr, "CHECK: Return value of 'cmd' <%s> and 'arg' \"%s\"\n", cmd, arg);
 
     //===========================================================================
     //  Brief Description:
@@ -163,7 +163,7 @@ void *command_switch(void *param)
       if (strcmp(cmd, "USER") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command USER Invoked
 	cmd_user(si, arg);
@@ -172,7 +172,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "PASS") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command PASS Invoked
 	cmd_pass(si, arg);
@@ -181,7 +181,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "QUIT") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command QUIT Invoked
 	char *retCodeQuit;
@@ -194,7 +194,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "PORT") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command PORT Invoked
 	cmd_port(si, arg);
@@ -203,7 +203,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "PASV") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command PASV Invoked
 	cmd_pasv(si);
@@ -212,7 +212,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "TYPE") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command TYPE Invoked
 	cmd_type(si, arg);
@@ -221,7 +221,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "STRU") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command STRU Invoked
 	if (arg != NULL) {
@@ -235,7 +235,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "MODE") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command MODE Invoked
     	cmd_mode(si, arg);
@@ -244,7 +244,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "RETR") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command RETR Invoked
     	command_retrieve(si, arg);
@@ -253,7 +253,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "STOR") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command STOR Invoked
     	cmd_stor(si, arg);
@@ -262,7 +262,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "STOU") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	//Command STOU Invoked
 	cmd_stou(si, arg);
@@ -271,7 +271,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "APPE") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command APPE Invoked
 	cmd_appe(si, arg);
@@ -280,7 +280,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "LIST") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command NLST Invoked
 	cmd_list_nlst(si, arg, true);
@@ -289,7 +289,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "NLST") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	//Command NLST Invoked
 	cmd_list_nlst(si, arg, false);
@@ -298,7 +298,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "SYST") == 0) {
 
 	//Debug Print
-    	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+    	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command SYST Invoked
 	cmd_syst(si);
@@ -307,7 +307,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "HELP") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command HELP Invoked
 	if (arg != NULL) {
@@ -320,7 +320,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "NOOP") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -332,7 +332,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "ACCT") == 0) {
 
 	//Debug Print
-        printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+        fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -340,7 +340,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "CDUP") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command CDUP Invoked
 	cmd_cdup (si, arg);
@@ -349,7 +349,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "SMNT") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -357,7 +357,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "REIN") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -365,7 +365,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "ALLO") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -373,7 +373,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "REST") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -381,7 +381,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "RNFR") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -389,7 +389,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "RNTO") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -397,7 +397,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "ABOR") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -405,7 +405,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "DELE") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -413,7 +413,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "SITE") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -421,15 +421,15 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "STAT") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
       } else {
 
 	//Debug Print
-	printf("ERROR: Command <%s> Unknown!\n", cmd);
-	printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
+	fprintf(stderr, "ERROR: Command <%s> Unknown!\n", cmd);
+	fprintf(stderr, "Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
 
 	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -451,7 +451,7 @@ void *command_switch(void *param)
       if (strcmp(cmd, "CWD") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command CWD Invoked
 	cmd_cwd (si, arg);
@@ -460,7 +460,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "RMD") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -468,7 +468,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "MKD") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
     	//Command MKD Invoked
 	makeDir(si, arg);
@@ -477,7 +477,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "PWD") == 0) {
 
 	//Debug Print
-	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	char *printEnd,
 	     *printStart;
@@ -492,8 +492,8 @@ void *command_switch(void *param)
       } else {
 
 	//Debug Print
-	printf("ERROR: Command <%s> Unknown!\n", cmd);
-	printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
+	fprintf(stderr, "ERROR: Command <%s> Unknown!\n", cmd);
+	fprintf(stderr, "Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
 
 	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
 
@@ -506,8 +506,8 @@ void *command_switch(void *param)
     } else {
 
       //Debug Print
-      printf("ERROR: Command <%s> Unknown!\n", cmd);
-      printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
+      fprintf(stderr, "ERROR: Command <%s> Unknown!\n", cmd);
+      fprintf(stderr, "Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
 
       send_all(si->c_sfd, (uint8_t *)cmdUnrecognized, strlen(cmdUnrecognized));
 
@@ -519,8 +519,8 @@ void *command_switch(void *param)
   } else {
 
     //Debug Print
-    printf("ERROR: Missing Command/Insufficient Arguments!\n");
-    printf("Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
+    fprintf(stderr, "ERROR: Missing Command/Insufficient Arguments!\n");
+    fprintf(stderr, "Argument Count (%d)\nString Length (%d)\n", numArgs, (int)strlen(cmdLine));
 
   } //END statement 'if-else'
 

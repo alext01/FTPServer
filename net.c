@@ -447,6 +447,7 @@ int cmd_port (session_info_t *session, char *cmd_str)
   char hostname[INET_ADDRSTRLEN];  //Maximum size of an IPv4 dot notation addr.
   char service[MAX_PORT_STR];
 
+
   //Ensure the client has logged in.
   if (!session->logged_in) {
     send_mesg_530 (session->c_sfd);
@@ -480,7 +481,9 @@ int cmd_port (session_info_t *session, char *cmd_str)
     return -1;
   }
   char *portsuccess = "200 PORT command successful. Consider using PASV.\n";
+
   send_all(session->c_sfd,(uint8_t*)portsuccess,strlen(portsuccess));
+
   //Create a data connection to the hostname and service provided by the client.
   if ((session->d_sfd = port_connect (hostname, service)) == -1) {
     //Error message code to control socket.

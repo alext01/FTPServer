@@ -372,7 +372,9 @@ void cmd_cdup (session_info_t *si, char *arg)
   }
 
   //Call cmd_cwd() to change to the parent directory.
-  cmd_cwd (si, "..");
+  char up[10];
+  strcpy(up,"..");
+  cmd_cwd (si, up);
   return;
 }
 

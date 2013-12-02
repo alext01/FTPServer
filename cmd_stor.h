@@ -30,7 +30,12 @@
  * Returns
  * 	void
  *
+ * Note: This function will store the unique name to the current working
+ *       directory and not any other path argument. This is intended, we were
+ *       following "rfc 959".
+ *
  * Original author: Justin Slind
+ * Checked by: Evan Myers
  *****************************************************************************/
 void cmd_stou (session_info_t *si, char *arg);
 
