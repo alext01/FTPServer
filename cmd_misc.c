@@ -42,7 +42,7 @@ void cmd_type(session_info_t *si, char *arg) {
 			send_all(si->c_sfd,(uint8_t*)ascii,strlen(ascii));
 			si->type = 'a';
 		} else if (arg[0] == 'i') {
-			char *image = "200 Switching to Binary mode.\n";
+			char *image = "200 Switching to Image mode.\n";
 			send_all(si->c_sfd,(uint8_t*)image,strlen(image));
 			si->type = 'i';
 		} else {

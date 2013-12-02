@@ -48,6 +48,7 @@ extern char *rootdir;  //defined in the file 'main.c'
 
 
 //Local function prototypes.
+static char *merge_absolute (const char *argpath, const int *reserve);
 static bool within_rootdir (char *fullpath, const char *trimmed);
 static bool is_a_dir (const char *fullpath);
 static int is_unique (const char *fullpath);
@@ -162,20 +163,36 @@ int check_futer_file (const char *cwd, char *argpath, bool unique)
  *****************************************************************************/
 char *merge_paths (const char *cwd, const char *argpath, const int *reserve)
 {
-  char *fullpath;    //Concatenate the rootdir, cwd, and path arg.
+ //Concatenate the rootdir, cwd, and path argument relevant to the cwd.
+  char *fullpath;
 
   //String lengths required to malloc the fullpath string.
   int rootdir_strlen;
   int cwd_strlen;
   int arg_strlen;
 
+  //Merge the absolute path. Proceed if the path is not absolute.
+  if ((fullpath = merge_absolute (argpath, reserve)) != NULL)
+    return fullpath;
+
+  /* When the argument begins with a '/' character, the path is absolute.
+   * merge_absolute() will only return NULL for an absolute path when malloc()
+   * has returned error. */
+  if (fullpath == NULL) {
+    if ((argpath != NULL) && (argpath[0] == '/'))
+      return NULL;
+  }
+
+
   rootdir_strlen = strlen (rootdir) + 1;
   cwd_strlen = strlen (cwd) + 1;
+
   if (argpath == NULL) {
-    if (reserve == NULL)
+    if (reserve == NULL) { //Always malloc() the space requested in reserve.
       arg_strlen = 0;
-    else
+    } else {
       arg_strlen = 0 + *reserve;
+    }
   } else {
     arg_strlen = strlen (argpath) + 1;
   }
@@ -199,6 +216,68 @@ char *merge_paths (const char *cwd, const char *argpath, const int *reserve)
   return fullpath;
 }
 
+
+/******************************************************************************
+ * This function is called by the function merge_paths(). When a path argument
+ * begins with the character '/', the argument is an absolute path.
+ *
+ * When the path is absolute, the current working directory should not be
+ * inserted between the path argument and rootdir path.
+ *
+ * If an error occurs in this function due to a malloc error, it is not caught
+ * in this function. merge_paths(), the caller of this function, will detect
+ * the malloc() error after calling this function.
+ *
+ * Arguments:
+ *    argpath - A pathname argument for a client command.
+ *    reserve - Add this count to the size of malloc(). View the function
+ *              header for merge_paths() in "path.h" for a description.
+ *
+ * Return values:
+ *   NULL - The path argument is not absolute, or malloc() error.
+ *   string - The absolute path to argument.
+ *****************************************************************************/
+static char *merge_absolute (const char *argpath, const int *reserve)
+{
+  char *fullpath;     //Concatenate the rootdir and the absolute path argument.
+  int rootdir_strlen;
+  int argpath_strlen;
+  int path_sz;
+
+  //Do not attempt to merge rootdir with NULL, the merge is rootdir.
+  if (argpath == NULL)
+    return NULL;
+
+
+  //When the path does not begin with '/', it is not absolute.
+  if (argpath[0] != '/')
+    return NULL;
+
+
+  rootdir_strlen = strlen (rootdir);
+  argpath_strlen = strlen (argpath) + 1;
+
+  /* If the argument has been trimmed, reserve space for it to be restored. See
+   * the function header for trim_arg_path() in this file. */
+  if (reserve != NULL)
+    argpath_strlen += *reserve;
+
+  path_sz = argpath_strlen + rootdir_strlen + 1; //+1 for null terminator.
+
+
+  if ((fullpath = malloc (path_sz * sizeof (*fullpath))) == NULL) {
+    fprintf (stderr, "%s: malloc: could not allocate the required space\n",
+	     __FUNCTION__);
+    return NULL;
+  }
+
+  *fullpath = '\0';
+  //Concatenate the absolute path to the argument.
+  strcat (fullpath, rootdir);
+  strcat (fullpath, argpath);
+
+  return fullpath;
+}
 
 /******************************************************************************
  * Determine if a pathname includes the root directory of the server, as

@@ -92,14 +92,11 @@ void command_retrieve(session_info_t *si, char *path)
   char buffer[BUFFSIZE];
 
   char *aborted,
-       *endLine,
        *fullPath,
-       *middle,
        *noAccess,
        *noConnection,
        *success,
-       *transferStart,
-       *type;
+       *transferStart;
 
   if (si->logged_in == false) {
     noAccess = "550 - Access denied.\n";
