@@ -294,7 +294,7 @@ void *command_switch(void *param)
       } else if (strcmp(cmd, "SYST") == 0) {
 
 	//Debug Print
-    	fprintf(stderr, "Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
+    	fprintf(stderr, "User <%s> Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", si->user, cmd, (numArgs - 1), arg);
 
 	//Command SYST Invoked
 	cmd_syst(si);
