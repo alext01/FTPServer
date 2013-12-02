@@ -74,7 +74,7 @@ void cmd_syst (session_info_t *si);
 //  Description:
 //    
 //===============================================================================
-//  Parameter List (in order of entry):
+//  Parameter Listing (in order of entry):
 //    {si}
 //      > Type structure pointer
 //      > Contains all pertinent information in regards to the current client
@@ -86,7 +86,7 @@ void cmd_syst (session_info_t *si);
 //      > Contains the number of arguments passed from the command string (with)
 //        the command itself being excluded from the count)
 //===============================================================================
-//  Return Value:
+//  Return Value(s):
 //    
 //===============================================================================
 void cmd_stru(session_info_t *si, char *arg, int argCount);

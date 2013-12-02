@@ -21,6 +21,7 @@
 //===============================================================================
 //  Code Citation(s):
 //    > http://www.cplusplus.com/reference/
+//    > http://www.beej.us/guide/bgnet/output/html/singlepage/bgnet.html
 //    > http://www.stackoverflow.com/
 //===============================================================================
 
@@ -50,7 +51,7 @@
 //  Description:
 //    Consult file "cmd_string_parser.h"
 //===============================================================================
-//  Variable List (in alphabetic order):
+//  Variable Listing (in alphabetical order):
 //    {argCount}
 //      > Type integer
 //      > Contains the count of the number of arguments within the given command
@@ -97,7 +98,7 @@ int command_arg_count(const char *cmdString)
 //  Description:
 //    Consult file "cmd_string_parser.h"
 //===============================================================================
-//  Variable List (in alphabetic order):
+//  Variable Listing (in alphabetical order):
 //    {argCount}
 //      > Type integer
 //      > Contains the count of the number of arguments within the given command
@@ -165,7 +166,7 @@ char *command_extract_arg(const char *cmdString)
 //  Description:
 //    Consult file "cmd_string_parser.h"
 //===============================================================================
-//  Variable List (in alphabetic order):
+//  Variable Listing (in alphabetical order):
 //    {command}
 //      > Type character pointer
 //      > Contains the invoked command (excludes the argument string)
@@ -220,7 +221,7 @@ char *command_extract_cmd(const char *cmdString)
 //  Description:
 //    Consult file "cmd_string_parser.h"
 //===============================================================================
-//  Variable List (in alphabetic order):
+//  Variable Listing (in alphabetical order):
 //    {duplicate}
 //      > Type character pointer
 //      > Contains a duplicate of the original command string
@@ -255,7 +256,7 @@ char *strdup(const char *string)
 //  Description:
 //    Consult file "cmd_string_parser.h"
 //===============================================================================
-//  Variable List (in alphabetic order):
+//  Variable Listing (in alphabetical order):
 //    {i}
 //      > Type integer
 //      > Contains the 'for' loop counter and array indexer
@@ -283,7 +284,7 @@ void convert_to_upper(char *string)
 //  Description:
 //    Consult file "cmd_string_parser.h"
 //===============================================================================
-//  Variable List (in alphabetic order):
+//  Variable Listing (in alphabetical order):
 //    {length}
 //      > Type integer
 //      > Contains the length of the given string

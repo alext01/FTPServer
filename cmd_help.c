@@ -25,6 +25,7 @@
 //===============================================================================
 //  Code Citation(s):
 //    > http://www.cplusplus.com/reference/
+//    > http://www.beej.us/guide/bgnet/output/html/singlepage/bgnet.html
 //    > http://www.stackoverflow.com/
 //===============================================================================
 
@@ -59,7 +60,7 @@
 //  Description:
 //    Consult file "cmd_help.h"
 //===============================================================================
-//  Variable List (in alphabetic order):
+//  Variable Listing (in alphabetical order):
 //    {argUnrecognized}
 //      > Type character pointer
 //      > Contains the FTP server return code 501

@@ -26,6 +26,7 @@
 //===============================================================================
 //  Code Citation(s):
 //    > http://www.cplusplus.com/reference/
+//    > http://www.beej.us/guide/bgnet/output/html/singlepage/bgnet.html
 //    > http://www.stackoverflow.com/
 //===============================================================================
 
@@ -38,7 +39,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/select.h>
 #include <unistd.h>
 
 
@@ -57,13 +57,13 @@
 
 
 //===============================================================================
-//  Function Name:=
+//  Function Name:
 //    command_retrieve(session_info_t *si, char *path)
 //===============================================================================
 //  Description:
-//    
+//    Consult file "cmd_retr.h"
 //===============================================================================
-//  Variable List (in alphabetical order):
+//  Variable Listing (in alphabetical order):
 //    {noAccess}
 //      > Type character pointer
 //      > 
@@ -155,7 +155,6 @@ void command_retrieve(session_info_t *si, char *path)
       close(si->d_sfd);
       si->d_sfd = 0;
       return;
-
     } else if (selVal == 0) {
       continue;
     } //END statement 'if-else'
@@ -188,10 +187,14 @@ void command_retrieve(session_info_t *si, char *path)
   } //END loop 'while'
 
 
-  if (fclose(retrFile) == EOF)
+  if (fclose(retrFile) == EOF) {
     fprintf (stderr, "%s: fclose: %s\n", __FUNCTION__, strerror (errno));
-  if (close(si->d_sfd) == -1)
+  } //END statement 'if'
+ 
+  if (close(si->d_sfd) == -1) {
     fprintf (stderr, "%s: close: %s\n", __FUNCTION__, strerror (errno));
+  } //END statement 'if'
+  
   si->d_sfd = 0;
 
   if (si->cmd_abort == true) {

@@ -21,8 +21,12 @@
 //    When HELP is invoked with an argument, it will return a short description
 //    of the specified command and how it is to be used.
 //===============================================================================
+//  Function Listing (in order of entry):
+//    > command_help
+//===============================================================================
 //  Code Citation(s):
 //    > http://www.cplusplus.com/reference/
+//    > http://www.beej.us/guide/bgnet/output/html/singlepage/bgnet.html
 //    > http://www.stackoverflow.com/
 //===============================================================================
 
@@ -47,7 +51,7 @@
 //  Description:
 //    
 //===============================================================================
-//  Parameter List (in order of entry):
+//  Parameter Listing (in order of entry):
 //    {si}
 //      > Type structure pointer
 //      > Contains all pertinent information in regards to the current client
@@ -55,7 +59,7 @@
 //      > Type character pointer
 //      > Contains the entire argument string (excludes the command)
 //===============================================================================
-//  Return Value:
+//  Return Value(s):
 //    
 //===============================================================================
 

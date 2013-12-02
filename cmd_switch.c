@@ -30,6 +30,7 @@
 //===============================================================================
 //  Code Citation(s):
 //    > http://www.cplusplus.com/reference/
+//    > http://www.beej.us/guide/bgnet/output/html/singlepage/bgnet.html
 //    > http://www.stackoverflow.com/
 //===============================================================================
 
@@ -72,7 +73,7 @@
 //  Description:
 //    Consult file "cmd_switch.h"
 //===============================================================================
-//  Variable List (in alphabetic order):
+//  Variable Listing (in alphabetical order):
 //    {arg}
 //      > Type character pointer
 //      > Contains the entire argument string (excludes the command)

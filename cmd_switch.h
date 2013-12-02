@@ -19,8 +19,12 @@
 //    A massive 'if-else if' statement that determines the command that has been
 //    invoked by the client and performs an appropriately related action.
 //===============================================================================
+//  Function Listing (in order of entry):
+//    > command_switch
+//===============================================================================
 //  Code Citation(s):
 //    > http://www.cplusplus.com/reference/
+//    > http://www.beej.us/guide/bgnet/output/html/singlepage/bgnet.html
 //    > http://www.stackoverflow.com/
 //===============================================================================
 
@@ -41,12 +45,12 @@
 //  Description:
 //    
 //===============================================================================
-//  Parameter List (in order of entry):
+//  Parameter Listing (in order of entry):
 //    {param}
 //      > Type function pointer
 //      > 
 //===============================================================================
-//  Return Value:
+//  Return Value(s):
 //    
 //===============================================================================
 

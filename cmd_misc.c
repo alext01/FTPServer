@@ -1,140 +1,217 @@
-/******************************************************************************
- * Students: Evan Myers, Justin Slind, Alex Tai, James Yoo
- * Course: CMPT-361
- * Assignment #3 - ftp server
- * File: cmd_misc.c
- * Date: November 2013
- *
- * Description:
- *   Miscellaneous ftp commands that don't fit in other categories
- *****************************************************************************/
+//===============================================================================
+//  Assignment #03 - FTP Server
+//===============================================================================
+//  Date:         November 2013
+//  Course:       CMPT 361 - Introduction to Networks
+//  Instructor:   Dr. Nicholas M. Boers
+//  Students:     Evan Myers
+//                Justin Slind
+//                Alex Tai
+//                James Yoo
+//===============================================================================
+//  Filename:
+//    cmd_misc.c
+//===============================================================================
+//  Associated Header File(s):
+//    > cmd_misc.h
+//    > net.h
+//    > session.h
+//===============================================================================
+//  Overview:
+//    This file implements various miscellaneous FTP server commands that do not
+//    fit into other categories.
+//===============================================================================
+//  Code Citation(s):
+//    > http://www.cplusplus.com/reference/
+//    > http://www.beej.us/guide/bgnet/output/html/singlepage/bgnet.html
+//    > http://www.stackoverflow.com/
+//===============================================================================
 
+
+
+
+//C Library Reference(s)
 #include <strings.h>
 #include <string.h>
 #include <ctype.h>
+
+
+//Header File Reference(s)
 #include "cmd_misc.h"
-#include "session.h"
 #include "net.h"
+#include "session.h"
 
 
-void cmd_type(session_info_t *si, char *arg) {
 
-<<<<<<< HEAD
-  char *fail = "504 Command not implemented for that parameter.\n";
+
+//===============================================================================
+//  Function Name:
+//    cmd_type(session_info_t *si, char *arg)
+//===============================================================================
+//  Description:
+//    Consult file "cmd_misc.h"
+//===============================================================================
+//  Variable Listing (in alphabetical order):
+//    {ascii}
+//      > Type character pointer
+//      > Contains the FTP server return code 200
+//    {fail}
+//      > Type character pointer
+//      > Contains the FTP server return code 504
+//    {image}
+//      > Type character pointer
+//      > Contains the FTP server return code 200
+//    {notloggedin}
+//      > Type character pointer
+//      > Contains the FTP server return code 530
+//    {syntaxerror}
+//      > Type character pointer
+//      > Contains the FTP server return code 501
+//===============================================================================
+//  Related Citation(s):
+//    > N/A
+//===============================================================================
+
+void cmd_type(session_info_t *si, char *arg)
+{ //BEGIN function 'cmd_type'
+
   char *ascii = "200 Switching to ASCII mode.\n";
+  char *fail = "504 Command not implemented for that parameter.\n";
+
   //must log in to change type
   if (!si->logged_in) {
     char *notloggedin = "530 Please login with USER and PASS.\n";
-    send_all(si->c_sfd,(uint8_t*)notloggedin,strlen(notloggedin));
+    send_all(si->c_sfd, (uint8_t *)notloggedin, strlen(notloggedin));
     return;
-  }
+  } //END statement 'if'
 
   if (!arg) {
     char *syntaxerror = "501 Syntax error in arguments.\n";
-    send_all(si->c_sfd, (uint8_t*)syntaxerror, strlen(syntaxerror));
+    send_all(si->c_sfd, (uint8_t *)syntaxerror, strlen(syntaxerror));
     return;
-  }
+  } //END statement 'if'
 
   // if arg is 1 char it must be an a or i, case insensitive
   if (strlen(arg) == 1) {
     arg[0] = tolower(arg[0]); //change arg to lowercase
-    if (arg[0] == 'a') {
 
-      send_all(si->c_sfd,(uint8_t*)ascii,strlen(ascii));
+    if (arg[0] == 'a') {
+      send_all(si->c_sfd, (uint8_t *)ascii, strlen(ascii));
       si->type = 'a';
     } else if (arg[0] == 'i') {
-      char *image = "200 Switching to Binary mode.\n";
-      send_all(si->c_sfd,(uint8_t*)image,strlen(image));
+      char *image = "200 Switching to Image mode.\n";
+      send_all(si->c_sfd, (uint8_t *)image, strlen(image));
       si->type = 'i';
     } else {
-      send_all(si->c_sfd,(uint8_t*)fail,strlen(fail));
-    }
+      send_all(si->c_sfd, (uint8_t *)fail, strlen(fail));
+    } //END statement 'if-else'
+
     return;
-  } if (strlen(arg) == 3) {
+
+  } //END statement 'if'
+
+  if (strlen(arg) == 3) {
+    
     //set interesting chars to lowercase
-    if (strcasecmp(arg,"a n") == 0) {
-      send_all(si->c_sfd,(uint8_t*)ascii,strlen(ascii));
+    if (strcasecmp(arg, "a n") == 0) {
+      send_all(si->c_sfd, (uint8_t *)ascii, strlen(ascii));
       si->type ='a';
       return;
-    }
-  }
-  send_all(si->c_sfd,(uint8_t*)fail,strlen(fail));
+    } //END statement 'if'
+
+  } //END statement 'if'
+
+  send_all(si->c_sfd, (uint8_t *)fail, strlen(fail));
+
   return;
-=======
-	char *fail = "504 Command not implemented for that parameter.\n";
-	char *ascii = "200 Switching to ASCII mode.\n";
-	//must log in to change type
-	if (!si->logged_in) {
-		char *notloggedin = "530 Please login with USER and PASS.\n";
-		send_all(si->c_sfd,(uint8_t*)notloggedin,strlen(notloggedin));
-		return;
-	}
 
-	if (!arg) {
-		char *syntaxerror = "501 Syntax error in arguments.\n";
-		send_all(si->c_sfd, (uint8_t*)syntaxerror, strlen(syntaxerror));
-		return;
-	}
+} //END function 'cmd_type'
 
-	// if arg is 1 char it must be an a or i, case insensitive
-	if (strlen(arg) == 1) {
-		arg[0] = tolower(arg[0]); //change arg to lowercase
-		if (arg[0] == 'a') {
 
-			send_all(si->c_sfd,(uint8_t*)ascii,strlen(ascii));
-			si->type = 'a';
-		} else if (arg[0] == 'i') {
-			char *image = "200 Switching to Image mode.\n";
-			send_all(si->c_sfd,(uint8_t*)image,strlen(image));
-			si->type = 'i';
-		} else {
-			send_all(si->c_sfd,(uint8_t*)fail,strlen(fail));
-		}
-		return;
-	} if (strlen(arg) == 3) {
-		//set interesting chars to lowercase
-		if (strcasecmp(arg,"a n") == 0) {
-			send_all(si->c_sfd,(uint8_t*)ascii,strlen(ascii));
-			si->type ='a';
-			return;
-		}
-	}
-	send_all(si->c_sfd,(uint8_t*)fail,strlen(fail));
-	return;
->>>>>>> c8a591a4b1b488f0b72213e9dd20ea7858757f2b
-}
 
-void cmd_mode(session_info_t *si, char *arg) {
-  char *fail = "504 Command not implemented for that parameter.\n";
+
+//===============================================================================
+//  Function Name:
+//    cmd_mode(session_info_t *si, char *arg)
+//===============================================================================
+//  Description:
+//    Consult file "cmd_misc.h"
+//===============================================================================
+//  Variable Listing (in alphabetical order):
+//    {ascii}
+//      > Type character pointer
+//      > Contains the FTP server return code 200
+//    {fail}
+//      > Type character pointer
+//      > Contains the FTP server return code 504
+//===============================================================================
+//  Related Citation(s):
+//    > N/A
+//===============================================================================
+
+void cmd_mode(session_info_t *si, char *arg)
+{ //BEGIN function 'cmd_mode'
+
   char *ascii = "200 Switching to stream mode.\n";
+  char *fail = "504 Command not implemented for that parameter.\n";
+
   if (arg)
+
     if (strlen(arg) == 1) {
       arg[0] = tolower(arg[0]); //change arg to lowercase
+
       if (arg[0] == 's') {
+	send_all(si->c_sfd, (uint8_t *)ascii, strlen(ascii));
+	return;	
+      } //END statement 'if'
 
-	send_all(si->c_sfd,(uint8_t*)ascii,strlen(ascii));
-	return;
+    } //END statement 'if'
 
-      }
-    }
-  send_all(si->c_sfd,(uint8_t*)fail,strlen(fail));
+  send_all(si->c_sfd, (uint8_t *)fail, strlen(fail));
   return;
-}
+
+} //END function 'cmd_mode'
+
+
+
+
+//===============================================================================
+//  Function Name:
+//    cmd_syst(session_info_t *si)
+//===============================================================================
+//  Description:
+//    Consult file "cmd_misc.h"
+//===============================================================================
+//  Variable Listing (in alphabetical order):
+//    {system}
+//      > Type character pointer
+//      > Contains the FTP server return code 215
+//===============================================================================
+//  Related Citation(s):
+//    > N/A
+//===============================================================================
 
 //Send the system type on the control connection.
-void cmd_syst (session_info_t *si) {
+void cmd_syst(session_info_t *si)
+{ //BEGIN function 'cmd_syst'
+
   char *system = "215 UNIX Type: L8\n";
-  send_all (si->c_sfd, (uint8_t*)system, strlen (system));
-}
+
+  send_all(si->c_sfd, (uint8_t *)system, strlen(system));
+
+} //END function 'cmd_syst'
+
+
+
 
 //===============================================================================
 //  Function Name:
 //    cmd_stru(session_info_t *si, char *arg, int argCount)
 //===============================================================================
 //  Description:
-//    
+//    Consult file "cmd_misc.h"
 //===============================================================================
-//  Variable List (in alphabetic order):
+//  Variable Listing (in alphabetical order):
 //    {argUnimplemented}
 //      > Type character pointer
 //      > Contains the FTP server return code 504
@@ -148,6 +225,7 @@ void cmd_syst (session_info_t *si) {
 //  Related Citation(s):
 //    > N/A
 //===============================================================================
+
 void cmd_stru(session_info_t *si, char *arg, int argCount)
 { //BEGIN function 'cmd_stru'
 
