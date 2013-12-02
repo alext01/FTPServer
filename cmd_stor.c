@@ -55,7 +55,6 @@ void cmd_stou(session_info_t *si, char *arg) {
 			if (fullPath)
 				free(fullPath);
 			sprintf(tempname,"%d",rand());
-			printf("%s\n",tempname);
 			fullPath = merge_paths(si->cwd,tempname,NULL);
 			rt = access(fullPath, F_OK);
 		} while ((rt != -1));// && ; //verify that random name doesn't exist
@@ -122,7 +121,7 @@ void store(session_info_t *si, char *cmd, char *purp) {
 	  cleanup_stor_recv (si, NULL, 451);
 	  return;
 	}
-	printf("fullPath: %s\n",fullPath);
+
 	if ((storfile = fopen(fullPath,purp)) == NULL) {
 	  fprintf (stderr, "%s: fopen: %s\n", __FUNCTION__, strerror (errno));
 	  free (fullPath);

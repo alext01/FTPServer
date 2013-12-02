@@ -148,6 +148,7 @@ int main (int argc, char *argv[])
 
     //Accept a connection from the client, or read a server command on stdin.
     if ((*c_sfd = accept_connection (listen_sfd, ACCEPT_CONTROL, NULL)) == -1) {
+      free (c_sfd);
       continue;
     } 
     else if (*c_sfd == STDIN_READY) {   //There is something to read on stdin.

@@ -398,7 +398,7 @@ void cmd_cwd (session_info_t *si, char *arg)
    * directory separator. (rootdir  --->   / <<cwd> />  ----> argument) */
   strcat (si->cwd, "/");
 
-  response = "200 Working directory changed.\n";
+  response = "250 Working directory changed.\n";
   send_all (si->c_sfd, (uint8_t *)response, strlen (response));
   
   free (fullpath);
