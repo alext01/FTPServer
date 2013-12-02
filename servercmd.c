@@ -6,7 +6,8 @@
  * Date: November 2013
  *
  * Description:
- *
+ *   Functions that read commands from standard input while the server is
+ *   running, and perform the recieved commands.
  *****************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>

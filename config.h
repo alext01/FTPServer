@@ -13,6 +13,8 @@
  *   Evan - The decision to include the configuration file was made after a
  *          conversation with Dr. Nicholas Boers.
  *****************************************************************************/
+#ifndef __CONFIG_H__
+#define __CONFIG_H__
 
 
 //The name of the server configuration file.
@@ -71,3 +73,6 @@ char *get_config_value (const char *config_setting, const char *filen);
  *   assignment.
  *****************************************************************************/
 char *get_config_path (const char *filen);
+
+
+#endif //__CONFIG_H__
