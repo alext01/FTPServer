@@ -30,6 +30,8 @@
 
 #define MAX_FDATSZ 4096
 
+extern char *rootdir; //The root directory of the server, defined in 'main.c'.
+
 char fileBuff[MAX_FDATSZ];
 
 FILE * openFile(char * fileName, char * path, char * purp){
@@ -156,10 +158,11 @@ void listDirect (session_info_t *si, char * fullpath, bool detail){
   DIR *dp;                       //directory pointer
   struct dirent *ep;             //entry pointer
   char *output;                  //output buffer
-
+  int outSize = CMD_STRLEN;
   char *aborted;
   char *success;
 
+  //Open the directory to be listed.
   if ((dp = opendir(fullpath)) == NULL) {
     fprintf (stderr, "%s: opendir: %s\n", __FUNCTION__, strerror (errno));
     send_mesg_451 (si->c_sfd);
@@ -168,7 +171,8 @@ void listDirect (session_info_t *si, char * fullpath, bool detail){
     return;
   }
 
-  output = (char *)calloc(4096, sizeof(char));
+  //Create an output buffer.
+  output = calloc(outSize, sizeof(*output));
   if(output == NULL){
     fprintf(stderr, "Error in allocating memory for output in list.");
     send_mesg_451 (si->c_sfd);
@@ -177,24 +181,30 @@ void listDirect (session_info_t *si, char * fullpath, bool detail){
     return;
   }
 
+  //Read all entries from the directory.
   errno = 0;
   while(((ep = readdir(dp)) != NULL) && (si->cmd_abort == false)){
     //Do not list hidden files, current directory, or parent directory.
     if(ep->d_name[0] != '.'){
+      //Create a detailed long listing, or a simple filename listing.
       if(detail == true){
-	//char * pathNfile = malloc(strlen(curloc) + strlen(ep->d_name) + 2);
-	//strcpy(pathNfile, curloc);
-	//strcat(pathNfile, "/");
-	//strcat(pathNfile, ep->d_name);
-
 	detailList(ep, fullpath, &output);
-	//free(pathNfile);
       } else {
 	strcat(output, ep->d_name);
 	strcat(output, "\r\n");
-      //if(strlen(output) >= (outSize-50)){
-      //	outSize += 4096;
-      //	output = (char *) realloc(output, outSize * sizeof(char));
+      }
+
+      //Expand the buffer when appropriate.
+      if(strlen(output) >= (outSize-356)){
+      	outSize += CMD_STRLEN;
+      	if ((output = realloc(output, outSize * sizeof (*output))) == NULL) {
+	  fprintf (stderr, "%s: realloc: %s\n", __FUNCTION__,
+		   "could not allocate the required space");
+	  send_mesg_451 (si->c_sfd);
+	  close (si->d_sfd);
+	  si->d_sfd = 0;
+	  return;
+	}
       }
     }
   }
@@ -211,35 +221,38 @@ void listDirect (session_info_t *si, char * fullpath, bool detail){
     }
   }
 
+  //Send the directory listing.
   send_all (si->d_sfd, (uint8_t*)output, strlen (output));
   free (output);
 
+  //Send the appropriate message if the command was aborted.
   if (si->cmd_abort == true) {
-    printf ("sending code 426\n");
     aborted = "426 - Connection close; transfer aborted.\n";
     send_all(si->c_sfd, (uint8_t *)aborted, strlen(aborted));
     si->cmd_abort = false;
   } else {
-    printf ("sending code 226\n");
     success = "226 - Closing data connection; requested file action successful.\n";
     send_all(si->c_sfd, (uint8_t *)success, strlen(success));
   }
 
+  //Clean up before returning.
   if (closedir (dp) == -1)
     fprintf (stderr, "%s: closedir: %s\n", __FUNCTION__, strerror (errno));
-  
   close (si->d_sfd);
   si->d_sfd = 0;
   return;
 }
 
 
-void detailList(struct dirent* dirInfo, char * fullpath, char ** output){
-  char *time;
+int detailList(struct dirent* dirInfo, char * fullpath, char ** output){
+  //cmtime() requires 26 characters. We will use less characters in our string.
+  char time[26];  
   struct stat fileStat;
   int errchk;
+  struct tm * timeinfo;
   errno = 0;
 
+  //Add the size of d_name field in struct statstat, + 1 for a null terminator.
   char filename[strlen (fullpath) + 256];
   filename[0] = '\0';
   strcat (filename, fullpath);
@@ -250,16 +263,17 @@ void detailList(struct dirent* dirInfo, char * fullpath, char ** output){
   // Check to see if stat() encountered any error
   if(errchk == -1){
     fprintf(stderr, "Error using stat function: %s\n", strerror(errno));
-    return;
+    return -1;
   }
 
-  if ((time = ctime (&fileStat.st_mtime)) == NULL) {
-    fprintf (stderr, "%s: ctime: %s\n", __FUNCTION__, strerror (errno));
-    return;
+  //Prepare the time returned from stat for a call to strftime().
+  if ((timeinfo = gmtime (&fileStat.st_mtime)) == NULL) {
+    fprintf (stderr, "%s: gmtime: error with function call\n", __FUNCTION__);
+    return -1;
   }
+  strftime (time, 20, "%b %d %Y", timeinfo);
 
-  time[strlen (time) - 1] = '\0';
-
+  //Store the type of file to the output string.
   if(dirInfo->d_type == DT_DIR){
     strcat(*output, "d");
   }
@@ -270,6 +284,7 @@ void detailList(struct dirent* dirInfo, char * fullpath, char ** output){
     strcat(*output, "-");
   }
 
+  //Store the permissions to the output string.
   (fileStat.st_mode & S_IRUSR) ? strcat(*output,"r"):strcat(*output,"-");
   (fileStat.st_mode & S_IWUSR) ? strcat(*output,"w"):strcat(*output,"-");
   (fileStat.st_mode & S_IXUSR) ? strcat(*output,"x"):strcat(*output,"-");
@@ -280,14 +295,12 @@ void detailList(struct dirent* dirInfo, char * fullpath, char ** output){
   (fileStat.st_mode & S_IWOTH) ? strcat(*output,"w"):strcat(*output,"-");
   (fileStat.st_mode & S_IXOTH) ? strcat(*output,"x"):strcat(*output,"-");
 
-  
+  //Store the other listing requirements to the output string.
   sprintf( (*output) + strlen(*output), " %zu   %d   %d   %lld   %s   %s\r\n",
 	   fileStat.st_nlink, fileStat.st_uid, fileStat.st_gid,
 	   (unsigned long long)fileStat.st_size, time, dirInfo->d_name);
-
-  printf ("%s\n", *output);
-  // printf("Mode:                  %lo (octal)\n", (unsigned long) fileStat.st_mode);
-  return;
+  
+  return 0;
 }
 
 
@@ -312,21 +325,83 @@ int makeDir(session_info_t *si, char * filepath){
   return 0;
 }
 
-/*
-char * changeDirect(char * curloc, char * directChanges){
-  char newPath[MAX_FDATSZ];
-  int changeSz;
-  int curlocSz;
 
-  if(directChanges[0] == '~'){
-    return directChanges;
+/******************************************************************************
+ * cmd_cdup - see filemanip.h
+ *****************************************************************************/
+void cmd_cdup (session_info_t *si, char *arg)
+{
+  char *response;
+
+ if (si->logged_in == false) {
+    response = "550 - Must login with USER and PASS.\n";
+    send_all(si->c_sfd, (uint8_t *)response, strlen (response));
+    return;
   }
-  else if(directChanges[0] == '.'){
-    if(directChanges[1] == '.'){
-    }
-    else{
-    }
+
+  if (arg != NULL) {
+    response = "550 No argument allowed\n";
+    send_all (si->c_sfd, (uint8_t *)response, strlen (response));
+    return;
+  }
+
+  //Call cmd_cwd() to change to the parent directory.
+  cmd_cwd (si, "..");
+  return;
+}
+
+/******************************************************************************
+ * cmd_cwd - see filemanip.h
+ *****************************************************************************/
+void cmd_cwd (session_info_t *si, char *arg)
+{
+  char *response;
+  char *fullpath;
+  char *canon;
+
+  if (si->logged_in == false) {
+    response = "550 Please login with USER and PASS.\n";
+    send_all (si->c_sfd, (uint8_t *)response, strlen (response));
+    return;
   }
   
-  return newPath;
-  }*/
+  /* Determine if the file is a directory and within the server root directory
+   * which can be found in the file 'ftp.conf'. */
+  if (!check_dir_exist (si->cwd, arg)) {
+    response = "550 Directory not found.\n";
+    send_all (si->c_sfd, (uint8_t *)response, strlen (response));
+    return;
+  }
+
+  //Create a single pathname to the directory from the pathname fragments.
+  if ((fullpath = merge_paths (si->cwd, arg, NULL)) == NULL) {
+    response = "550 Error while processing.\n";
+    send_all (si->c_sfd, (uint8_t *)response, strlen (response));
+    return;
+  }
+
+  /* Canonicalize the file name so that a longer session will not contain
+   * multiple ".." entries in the pathname, making it difficult for the client
+   * to determine where they are. */
+  if ((canon = canonicalize_file_name (fullpath)) == NULL) {
+    response = "550 Error while processing.\n";
+    send_all (si->c_sfd, (uint8_t *)response, strlen (response));
+    free (fullpath);
+    return;
+  }
+
+  si->cwd[0] = '\0';
+  /* Copy the path found after the rootdir to the session cwd. Only the cwd is
+   * modified in this process. */
+  strcat (si->cwd, canon + strlen (rootdir));
+  /* The implementation of our paths require cwd to always be followed by a
+   * directory separator. (rootdir  --->   / <<cwd> />  ----> argument) */
+  strcat (si->cwd, "/");
+
+  response = "200 Working directory changed.\n";
+  send_all (si->c_sfd, (uint8_t *)response, strlen (response));
+  
+  free (fullpath);
+  free (canon);
+  return;
+}
