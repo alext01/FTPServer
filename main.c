@@ -170,6 +170,7 @@ int main (int argc, char *argv[])
 	free (c_sfd);
 	break;
       } else {
+	free (c_sfd);
 	continue;
       }
     }
@@ -183,6 +184,7 @@ int main (int argc, char *argv[])
 
     //Increment the control connection thread count.
     if (modify_cthread_count (1) == -1)
+      free (c_sfd);
       break;
   }
 
