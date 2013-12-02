@@ -310,14 +310,16 @@ int makeDir(session_info_t *si, char * filepath){
   permissions = permissions | S_IWUSR;
   permissions = permissions | S_IXUSR;
 
-  if(si->logged_in == false){
+  if(si->logged_in == false || strcmp(si->user, "anonymous") == 0){
     char *response = "550 Please login with USER and PASS.\n";
     send_all(si->c_sfd, (uint8_t *)response, strlen(response));
+    close(si->d_sfd);
+    si->d_sfd = 0;
     return -1;
   }
 
   if( (filepath = merge_paths(si->cwd, filepath, NULL)) == NULL){
-    send_mesg_451(si->c_sfd);
+    fprintf(stderr, "%s: mkdir: filepath merge error\n", __FUNCTION__);
     close(si->d_sfd);
     si->d_sfd = 0;
     return -1;
