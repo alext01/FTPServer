@@ -297,7 +297,7 @@ void *command_switch(void *param)
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
 	//Command HELP Invoked
-	//command_help(si, arg);
+	command_help(si, arg);
 
       /* NOOP <CRLF> */
       } else if (strcmp(cmd, "NOOP") == 0) {

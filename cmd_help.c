@@ -96,15 +96,17 @@ void command_help(session_info_t *si, char *arg)
          *row4,
          *row5,
          *row6,
-         *row7;
+         *row7,
+         *row8;
 
-    row1 = "ABOR\tHELP\tPASV\tRMD\tSTOU\n";
-    row2 = "ACCT\tLIST\tPORT\tRNFR\tSTRU\n";
-    row3 = "ALLO\tMKD\tPWD\tRNTO\tSYST\n";
-    row4 = "APPE\tMODE\tQUIT\tSITE\tTYPE\n";
-    row5 = "CDUP\tNLST\tREIN\tSMNT\tUSER\n";
-    row6 = "CWD\tNOOP\tREST\tSTAT\n";
-    row7 = "DELE\tPASS\tRETR\tSTOR\n";
+    row1 = "\nCommands may be abbreviated.\nThe commands are:\n";
+    row2 = "\tABOR\tHELP\tPASV\tRMD\tSTOU\n";
+    row3 = "\tACCT\tLIST\tPORT\tRNFR\tSTRU\n";
+    row4 = "\tALLO\tMKD\tPWD\tRNTO\tSYST\n";
+    row5 = "\tAPPE\tMODE\tQUIT\tSITE\tTYPE\n";
+    row6 = "\tCDUP\tNLST\tREIN\tSMNT\tUSER\n";
+    row7 = "\tCWD\tNOOP\tREST\tSTAT\n";
+    row8 = "\tDELE\tPASS\tRETR\tSTOR\n\n";
 
     send_all(si->c_sfd, (uint8_t *)row1, strlen(row1));
     send_all(si->c_sfd, (uint8_t *)row2, strlen(row2));
@@ -113,6 +115,7 @@ void command_help(session_info_t *si, char *arg)
     send_all(si->c_sfd, (uint8_t *)row5, strlen(row5));
     send_all(si->c_sfd, (uint8_t *)row6, strlen(row6));
     send_all(si->c_sfd, (uint8_t *)row7, strlen(row7));
+    send_all(si->c_sfd, (uint8_t *)row8, strlen(row8));
 
     return;
 
