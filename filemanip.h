@@ -100,6 +100,7 @@ int closeFile(FILE * fp);
  * Return: void
  * Description: 
  *
+ * Checked by: Evan Myers
  *********************************************************/
 void cmd_list_nlst (session_info_t *si, const char *argpath, bool detail);
 
@@ -113,6 +114,7 @@ void cmd_list_nlst (session_info_t *si, const char *argpath, bool detail);
  * Description: List out all files and folders in
  *              the current directory.
  *
+ * Checked by: Evan Myers
  *********************************************************/
 void listDirect(session_info_t *si, char *fullpath, bool detail);
 
@@ -120,11 +122,12 @@ void listDirect(session_info_t *si, char *fullpath, bool detail);
  *
  * detailList
  * Argument: char * - filename
- * Return: void
+ * Return: int - 0 for success, -1 for error
  * Description: Display detailed information about files
  *
+ * Checked by: Evan Myers
  *********************************************************/
-void detailList(struct dirent * dirInfo, char * filepath, char ** output);
+int detailList(struct dirent * dirInfo, char * filepath, char ** output);
 
 /*********************************************************
  * makeDir
@@ -135,15 +138,28 @@ void detailList(struct dirent * dirInfo, char * filepath, char ** output);
  ********************************************************/
 int makeDir(session_info_t *si, char * filepath);
 
-/*********************************************************
+/******************************************************************************
+ * Change the current working directory to the parent directory by calling
+ * cmd_cwd() with the argument path "..".
  *
- * changeDirect
- * Argument: char * - current location
- *           char * - changes in location
- * Return: char * - new overall pathname
- * Description: Change the current working directory
+ * Argument:
+ *   si  - The command thread session information.
+ *   arg - The command is rejected if this argument is not NULL.
+ * 
+ * Origin author: Evan Myers
+ *****************************************************************************/
+void cmd_cdup (session_info_t *si, char *arg);
+
+/******************************************************************************
+ * Change the current working directory.
  *
- ********************************************************/
-char * changeDirect(char * curloc, char * directChanges);
+ * Argument:
+ *   si  - The command thread session information.
+ *   arg - Change the current working directory to this path if accepted.
+ * 
+ * Origin author: Alex tai
+ * Changed by: Evan Myers - using code written by James Yoo and Justin Slind
+ ******************************************************************************/
+void cmd_cwd (session_info_t *si, char *arg);
 
 #endif

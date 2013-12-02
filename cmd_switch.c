@@ -325,7 +325,8 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
-    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+	//Command CDUP Invoked
+	cmd_cdup (si, arg);
 
       /* SMNT <SP> <pathname> <CRLF> */
       } else if (strcmp(cmd, "SMNT") == 0) {
@@ -435,7 +436,8 @@ void *command_switch(void *param)
 	//Debug Print
 	printf("Invoked Command <%s> with (%d) Argument(s) \"%s\"\n", cmd, (numArgs - 1), arg);
 
-    	send_all(si->c_sfd, (uint8_t *)cmdUnimplemented, strlen(cmdUnimplemented));
+	//Command CWD Invoked
+	cmd_cwd (si, arg);
 
       /* RMD <SP> <pathname> <CRLF> */
       } else if (strcmp(cmd, "RMD") == 0) {
