@@ -338,11 +338,11 @@ int makeDir(session_info_t *si, char * filepath){
   }
   printf("mkdir successful\n");
 
-  char * printStart = "257 - /";
+  char * printStart = "257 - ";
   char * printEnd = "/ \n";
   char * root = "rootdir";
   char * outpath = strstr(filepath, root);
-
+  outpath += 7;
   send_all(si->c_sfd, (uint8_t *)printStart, strlen(printStart));
   send_all(si->c_sfd, (uint8_t *)outpath, strlen(outpath));
   send_all(si->c_sfd, (uint8_t *)printEnd, strlen(printEnd));
