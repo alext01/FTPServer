@@ -109,7 +109,7 @@ void writeFile(FILE * fp, long int datSZ){
 }
 
 
-void cmd_list_nlst (session_info_t *si, const char *arg, bool detail)
+void cmd_list_nlst (session_info_t *si, char *arg, bool detail)
 {
   char *fullpath;
 

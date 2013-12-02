@@ -102,7 +102,7 @@ int closeFile(FILE * fp);
  *
  * Checked by: Evan Myers
  *********************************************************/
-void cmd_list_nlst (session_info_t *si, const char *argpath, bool detail);
+void cmd_list_nlst (session_info_t *si, char *argpath, bool detail);
 
 /**********************************************************
  *

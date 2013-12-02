@@ -59,7 +59,7 @@ static void restore_trimmed (char **argpath, char **fullpath, char *trimmed);
 /******************************************************************************
  * check_file_exist - see path.h
  *****************************************************************************/
-bool check_file_exist (const char *cwd, const char *argpath)
+bool check_file_exist (const char *cwd, char *argpath)
 {
   char *fullpath;
 
@@ -81,7 +81,7 @@ bool check_file_exist (const char *cwd, const char *argpath)
 /******************************************************************************
  * check_dir_exist - see path.h
  *****************************************************************************/
-bool check_dir_exist (const char *cwd, const char *argpath)
+bool check_dir_exist (const char *cwd, char *argpath)
 {
   char *fullpath;
 
@@ -161,15 +161,23 @@ int check_futer_file (const char *cwd, char *argpath, bool unique)
 /******************************************************************************
  * merge_paths - see path.h
  *****************************************************************************/
-char *merge_paths (const char *cwd, const char *argpath, const int *reserve)
+char *merge_paths (const char *cwd, char *argpath, const int *reserve)
 {
  //Concatenate the rootdir, cwd, and path argument relevant to the cwd.
   char *fullpath;
+  char *browserfix;
 
   //String lengths required to malloc the fullpath string.
   int rootdir_strlen;
   int cwd_strlen;
   int arg_strlen;
+
+  if (argpath != NULL) {
+    if ((browserfix = strstr (argpath, " ")) != NULL) {
+      argpath = browserfix;
+      argpath++;
+    }
+  }
 
   //Merge the absolute path. Proceed if the path is not absolute.
   if ((fullpath = merge_absolute (argpath, reserve)) != NULL)
@@ -324,6 +332,7 @@ static bool within_rootdir (char *fullpath, const char *trimmed)
   char *canon;       //An abreviation of canonicalized absolute pathname.
   char *str;         //Return value of strcat function.
 
+  printf ("fullpath = %s\n", fullpath);
   //Resolve all "..", ".", and duplicate '/' entries. Resolve symbolic links.
   if ((canon = canonicalize_file_name (fullpath)) == NULL) {
     fprintf (stderr, "%s: canonicalize_file_name: %s\n", __FUNCTION__, 
