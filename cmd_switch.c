@@ -14,6 +14,7 @@
 //===============================================================================
 //  Associated Header File(s):
 //    > cmd_help.h
+//    > cmd_misc.h
 //    > cmd_retr.h
 //    > cmd_stor.h
 //    > cmd_string_parser.h
@@ -44,6 +45,7 @@
 
 
 //Header File Reference(s)
+#include "cmd_help.h"
 #include "cmd_misc.h"
 #include "cmd_retr.h"
 #include "cmd_stor.h"
