@@ -306,10 +306,13 @@ int detailList(struct dirent* dirInfo, char * fullpath, char ** output){
 
 int makeDir(session_info_t *si, char * filepath){
   mode_t permissions = 0;
+  // Sets permission for the new folder being created
   permissions = permissions | S_IRUSR;
   permissions = permissions | S_IWUSR;
   permissions = permissions | S_IXUSR;
 
+  // Checks to make sure that only a logged in user can make a
+  // new directory as well as the user is NOT anonymous.
   if(si->logged_in == false || strcmp(si->user, "anonymous") == 0){
     char *response = "550 Please login with USER and PASS.\n";
     send_all(si->c_sfd, (uint8_t *)response, strlen(response));
@@ -337,6 +340,11 @@ int makeDir(session_info_t *si, char * filepath){
     return -1;
   }
 
+  /***********************************************************************
+   * trims and modified the displayed filepath of the new directory so
+   * that it will not display the path above the specified root directory
+   * and root directory is displayed as "/"
+   **********************************************************************/
   char * printStart = "257 - ";
   char * printEnd = "/ \n";
   char * root = rootdir;
