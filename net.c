@@ -239,9 +239,11 @@ int accept_connection (int listen_sfd, int mode, session_info_t *si)
   /* In this server implementation, the socket created with the PASV command is
    * intended to accept only one data connection. After a connection has been
    * accepted, close the listening socket. */
-  if (mode == ACCEPT_PASV)
+  if (mode == ACCEPT_PASV) {
     if (close (listen_sfd) == -1)
       fprintf (stderr, "%s: ending close: %s\n", __FUNCTION__, strerror(errno));
+  }
+  
 
   return accepted_sfd;  //Return the accepted socket file descriptor.
 }
@@ -447,6 +449,11 @@ int cmd_port (session_info_t *session, char *cmd_str)
   char hostname[INET_ADDRSTRLEN];  //Maximum size of an IPv4 dot notation addr.
   char service[MAX_PORT_STR];
 
+  //The port command must have an argument.
+  if (cmd_str == NULL) {
+    send_mesg_501 (session->c_sfd);
+    return -1;
+  }
 
   //Ensure the client has logged in.
   if (!session->logged_in) {
