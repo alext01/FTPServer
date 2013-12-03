@@ -167,8 +167,10 @@ int main (int argc, char *argv[])
     else if (*c_sfd == STDIN_READY) {   //There is something to read on stdin.
       if (read_server_cmd () == SHUTDOWN_SERVER) {
 	shutdown_server = true;
+	free (c_sfd);
 	break;
       } else {
+	free (c_sfd);
 	continue;
       }
     }
@@ -184,9 +186,6 @@ int main (int argc, char *argv[])
     if (modify_cthread_count (1) == -1)
       break;
   }
-
-  if (c_sfd != NULL)
-    free (c_sfd);
 
   free (rootdir);
 

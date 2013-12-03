@@ -336,7 +336,6 @@ int makeDir(session_info_t *si, char * filepath){
     free(filepath);
     return -1;
   }
-  printf("mkdir successful\n");
 
   char * printStart = "257 - ";
   char * printEnd = "/ \n";

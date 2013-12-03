@@ -405,8 +405,6 @@ bool is_a_dir (const char *fullpath)
 
   //Determine if the file is a directory. See man (2) stat, line 120.
   if (!(st.st_mode & S_IFDIR)) {
-    fprintf (stderr, "%s: file is not a directory when directory expected\n",
-	     __FUNCTION__);
     return false;
   }
   return true;
