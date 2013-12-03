@@ -4,7 +4,7 @@
  * Group Project
  * Class: CMPT 361
  * Version: 1.2ftp
- * Author: Alex Tai
+ * 
  * Includes function such as reading files, finding
  * the size of the file, writing to a file, listing
  * directories, changing directories.
@@ -99,7 +99,7 @@ int closeFile(FILE * fp);
  *                  true for yes, false for no.
  * Return: void
  * Description: 
- *
+ * Original Author: Alex Tai
  * Checked by: Evan Myers
  *********************************************************/
 void cmd_list_nlst (session_info_t *si, char *argpath, bool detail);
@@ -113,7 +113,7 @@ void cmd_list_nlst (session_info_t *si, char *argpath, bool detail);
  * Return: void
  * Description: List out all files and folders in
  *              the current directory.
- *
+ * Original Author: Alex Tai
  * Checked by: Evan Myers
  *********************************************************/
 void listDirect(session_info_t *si, char *fullpath, bool detail);
@@ -124,7 +124,7 @@ void listDirect(session_info_t *si, char *fullpath, bool detail);
  * Argument: char * - filename
  * Return: int - 0 for success, -1 for error
  * Description: Display detailed information about files
- *
+ * Original Autnor: Alex Tai
  * Checked by: Evan Myers
  *********************************************************/
 int detailList(struct dirent * dirInfo, char * filepath, char ** output);
@@ -135,7 +135,7 @@ int detailList(struct dirent * dirInfo, char * filepath, char ** output);
  * Return: int - 0 if ran without errors, -1 if error
  *               was encountered. 
  * Description: Creates a directory
- *
+ * Original Author: Alex Tai
  * Checked by: Evan Myers
  ********************************************************/
 int makeDir(session_info_t *si, char * filepath);
@@ -149,6 +149,7 @@ int makeDir(session_info_t *si, char * filepath);
  *   arg - The command is rejected if this argument is not NULL.
  * 
  * Origin author: Evan Myers
+ * Checked by: Alex Tai
  *****************************************************************************/
 void cmd_cdup (session_info_t *si, char *arg);
 

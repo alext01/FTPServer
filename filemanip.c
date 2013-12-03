@@ -4,7 +4,7 @@
  * Group Project
  * Class: CMPT 361
  * Version: 1.2ftp
- * Author: Alex Tai
+ * 
  * Includes function such as reading files, finding size of the
  * file, writing to a file, listing directories, changing
  * directories.
