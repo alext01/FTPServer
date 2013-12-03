@@ -137,10 +137,17 @@ int accept_connection (int listen_sfd, int mode, session_info_t *si)
   int stdin_fd;      //store the fileno of stdin.
   int accepted_sfd;  //the socket returned by accept()
 
+
   //Used to check if the thread should return, for ACCEPT_PASV
   struct timeval timeout;
   struct timeval *timeout_ptr;
   int nready;                    //Used to check for select() timeout.
+
+
+  //Ensure the listening socket is not the result of a previous error.
+  if (listen_sfd == -1)
+    return -1;
+
 
   if (mode == ACCEPT_CONTROL) {
     //Collect the file descriptor for stdin, to detect server commands.
@@ -148,6 +155,7 @@ int accept_connection (int listen_sfd, int mode, session_info_t *si)
       fprintf (stderr, "%s: fileno: %s\n", __FUNCTION__, strerror (errno));
       return -1;
     }
+
 
     /* There is no timeout. select() will block indefinately a client is
      * attempting to create a control connection, or a command is entered
@@ -175,8 +183,8 @@ int accept_connection (int listen_sfd, int mode, session_info_t *si)
      * "most others". See 'man (2) select' for more information about the
      * timeout value. */
     if (mode == ACCEPT_PASV) {
-      timeout.tv_sec = 0;
-      timeout.tv_usec = USEC_TIMEOUT;
+      timeout.tv_sec = COM_THREAD_ABORT_TIMEOUT_SEC;
+      timeout.tv_usec = COM_THREAD_ABORT_TIMEOUT_USEC;
     }
 
 
@@ -244,7 +252,6 @@ int accept_connection (int listen_sfd, int mode, session_info_t *si)
       fprintf (stderr, "%s: ending close: %s\n", __FUNCTION__, strerror(errno));
   }
   
-
   return accepted_sfd;  //Return the accepted socket file descriptor.
 }
 
