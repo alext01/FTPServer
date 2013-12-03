@@ -133,8 +133,8 @@ void store(session_info_t *si, char *cmd, char *purp) {
 	while(si->cmd_abort == false && rt != 0) {
 		FD_ZERO(&rfds);
 		FD_SET(si->d_sfd,&rfds);
-		timeout.tv_sec = 0;
-		timeout.tv_usec = USEC_TIMEOUT;
+		timeout.tv_sec = COM_THREAD_ABORT_TIMEOUT_SEC;
+		timeout.tv_usec = COM_THREAD_ABORT_TIMEOUT_USEC;
 		int sr = 0;
 		if ((sr = select(si->d_sfd+1,&rfds,NULL,NULL,&timeout)) == -1) {
 			if (errno == EINTR)

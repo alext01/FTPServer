@@ -65,8 +65,8 @@ int session(int c_sfd) {
 
 		FD_ZERO(&rfds);
 		FD_SET(c_sfd,&rfds);
-		timeout.tv_sec = 0;
-		timeout.tv_usec = USEC_TIMEOUT;
+		timeout.tv_sec = SERVER_SHUTDOWN_TIMEOUT_SEC;
+		timeout.tv_usec = SERVER_SHUTDOWN_TIMEOUT_USEC;
 
 		//read from socket with timeout
 		if (select(c_sfd+1,&rfds,NULL,NULL,&timeout) == -1) {

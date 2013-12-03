@@ -139,8 +139,8 @@ void command_retrieve(session_info_t *si, char *path)
   while ((si->cmd_abort == false) && (retVal != 0)) {
     FD_ZERO(&wfds);
     FD_SET(si->d_sfd, &wfds);
-    timeout.tv_sec = 0;
-    timeout.tv_usec = USEC_TIMEOUT;
+    timeout.tv_sec = COM_THREAD_ABORT_TIMEOUT_SEC;
+    timeout.tv_usec = COM_THREAD_ABORT_TIMEOUT_USEC;
     selVal = select((si->d_sfd + 1), NULL, &wfds, NULL, &timeout);
 
 
